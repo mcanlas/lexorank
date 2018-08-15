@@ -2,17 +2,25 @@ package com.htmlism.lexorank
 
 import cats.effect._
 
-object Storage {
-  def apply(xs: (Pk, Rank)*): Storage =
-    Storage(xs.map((Row.apply _).tupled).toList)
-}
+class Storage[A] {
+  case class Row(id: Pk, rank: A)
 
-case class Storage(xs: List[Row]) {
-  assert(xs.map(_.id).toSet.size == xs.size, "primary keys are unique")
-  assert(xs.map(_.rank).toSet.size == xs.size, "ranks are unique")
+  private val xs = collection.mutable.Buffer.empty[Row]
 
-  def getAllRanks: IO[List[Rank]] =
+  def getAllRanks: IO[List[A]] =
     IO {
-      xs.map(_.rank)
+      xs.map(_.rank).toList
+    }
+
+  def withRow(id: Pk, rank: A): IO[Row] =
+    IO {
+      val ret = Row(id, rank)
+
+      xs += ret
+
+      assert(xs.map(_.id).toSet.size == xs.size, "primary keys are unique")
+      assert(xs.map(_.rank).toSet.size == xs.size, "ranks are unique")
+
+      ret
     }
 }
