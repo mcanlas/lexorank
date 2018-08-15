@@ -7,6 +7,7 @@ class LexorankSpec extends FlatSpec with Matchers {
     val ret =
       new Storage[String]
         .changePosition(1, after = Some(1), before = None)
+        .value
         .unsafeRunSync()
 
     ret shouldBe Left(IdWasInAfter)
@@ -16,6 +17,7 @@ class LexorankSpec extends FlatSpec with Matchers {
     val ret =
       new Storage[String]
         .changePosition(1, after = None, before = Some(1))
+        .value
         .unsafeRunSync()
 
     ret shouldBe Left(IdWasInBefore)
@@ -25,6 +27,7 @@ class LexorankSpec extends FlatSpec with Matchers {
     val ret =
       new Storage[String]
         .changePosition(1, after = None, before = None)
+        .value
         .unsafeRunSync()
 
     ret shouldBe Left(IdDoesNotExistInStorage)

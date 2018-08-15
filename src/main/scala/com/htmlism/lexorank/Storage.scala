@@ -15,11 +15,12 @@ class Storage[A] {
    * @param before
    * @return
    */
-  def changePosition(id: Pk, after: Option[Pk], before: Option[Pk]): IO[Either[LexorankError, Row]] =
+  def changePosition(id: Pk, after: Option[Pk], before: Option[Pk]): AnnotatedIO[Either[LexorankError, Row]] =
       if (after.contains(id))
-        IO(Left(IdWasInAfter))
+        AnnotatedIO(Left(IdWasInAfter))
+
       else if (before.contains(id))
-        IO(Left(IdWasInBefore))
+        AnnotatedIO(Left(IdWasInBefore))
       else {
         // spent one connection
         exists(id)
@@ -31,17 +32,17 @@ class Storage[A] {
           }
       }
 
-  def getAllRanks: IO[List[A]] =
-    IO {
+  def getAllRanks: AnnotatedIO[List[A]] =
+    AnnotatedIO {
       xs.map(_.rank).toList
     }
 
-  def getAllIds: IO[List[Pk]] =
-    IO {
+  def getAllIds: AnnotatedIO[List[Pk]] =
+    AnnotatedIO {
       xs.map(_.id).toList
     }
 
-  def exists(id: Pk): IO[Boolean] =
+  def exists(id: Pk): AnnotatedIO[Boolean] =
     getAllIds
       .map(_.contains(id))
 
