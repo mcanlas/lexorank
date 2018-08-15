@@ -16,19 +16,34 @@ class Storage[A] {
    * @return
    */
   def changePosition(id: Pk, after: Option[Pk], before: Option[Pk]): IO[Either[LexorankError, Row]] =
-    IO {
       if (after.contains(id))
-        Left(IdWasInAfter)
+        IO(Left(IdWasInAfter))
       else if (before.contains(id))
-        Left(IdWasInBefore)
-      else
-        Right(???)
-    }
+        IO(Left(IdWasInBefore))
+      else {
+        // spent one connection
+        exists(id)
+          .map { t =>
+            if (t)
+              Right(???)
+            else
+              Left(IdDoesNotExistInStorage)
+          }
+      }
 
   def getAllRanks: IO[List[A]] =
     IO {
       xs.map(_.rank).toList
     }
+
+  def getAllIds: IO[List[Pk]] =
+    IO {
+      xs.map(_.id).toList
+    }
+
+  def exists(id: Pk): IO[Boolean] =
+    getAllIds
+      .map(_.contains(id))
 
   def withRow(id: Pk, rank: A): IO[Row] =
     IO {
