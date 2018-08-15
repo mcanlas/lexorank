@@ -29,6 +29,8 @@ case object MinUnderflow extends OverflowError
 
 sealed trait BetweenFailed
 
+case object BetweenFailed extends BetweenFailed
+
 object Rankable {
   implicit val int: Rankable[Int] =
     new Rankable[Int] {
@@ -64,10 +66,10 @@ object Rankable {
 
         val ret = util.Random.nextInt(max - min) + 1 + min
 
-        if (ret > min && ret < max)
+        if (x != y && ret > min && ret < max)
           Right(ret)
         else
-          Left(new BetweenFailed {})
+          Left(BetweenFailed)
       }
     }
 }
