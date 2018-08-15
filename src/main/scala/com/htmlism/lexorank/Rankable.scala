@@ -12,20 +12,22 @@ trait Rankable[A] {
 
   def max: A
 
-  def increment(a: A): A Or BoundsError
+  def increment(a: A): A Or OverflowError
 
-  def decrement(a: A): A Or BoundsError
+  def decrement(a: A): A Or OverflowError
 
   def eq(x: A, y: A): Boolean
 
-  def between(x: A, y: A): A
+  def between(x: A, y: A): A Or BetweenFailed
 }
 
-sealed trait BoundsError
+sealed trait OverflowError
 
-case object MaxOverflow extends BoundsError
+case object MaxOverflow extends OverflowError
 
-case object MinUnderflow extends BoundsError
+case object MinUnderflow extends OverflowError
+
+sealed trait BetweenFailed
 
 object Rankable {
   implicit val int: Rankable[Int] =
@@ -36,7 +38,7 @@ object Rankable {
       def max: Int =
         Int.MaxValue
 
-      def increment(a: Int): Int Or BoundsError = {
+      def increment(a: Int): Int Or OverflowError = {
         val ret = a + 1
 
         if (ret < a)
@@ -45,7 +47,7 @@ object Rankable {
           Right(a)
       }
 
-      def decrement(a: Int): Int Or BoundsError = {
+      def decrement(a: Int): Int Or OverflowError = {
         val ret = a - 1
 
         if (ret > a)
@@ -56,6 +58,16 @@ object Rankable {
 
       def eq(x: Int, y: Int): Boolean = ???
 
-      def between(x: Int, y: Int): Int = ???
+      def between(x: Int, y: Int): Int Or BetweenFailed = {
+        val min = Math.min(x, y)
+        val max = Math.max(x, y)
+
+        val ret = util.Random.nextInt(max - min) + 1 + min
+
+        if (ret > min && ret < max)
+          Right(ret)
+        else
+          Left(new BetweenFailed {})
+      }
     }
 }
