@@ -4,10 +4,20 @@ import org.scalatest._
 
 class LexorankSpec extends FlatSpec with Matchers {
   it should "error if pk exists in `after`" in {
-    Lexorank.changePosition(1, after = Some(1), before = None) shouldBe None
+    val ret =
+      new Storage[String]
+        .changePosition(1, after = Some(1), before = None)
+        .unsafeRunSync()
+
+    ret shouldBe Left(IdWasInAfter)
   }
 
   it should "error if pk exists in `before`" in {
-    Lexorank.changePosition(1, after = None, before = Some(1)) shouldBe None
+    val ret =
+      new Storage[String]
+        .changePosition(1, after = None, before = Some(1))
+        .unsafeRunSync()
+
+    ret shouldBe Left(IdWasInBefore)
   }
 }
