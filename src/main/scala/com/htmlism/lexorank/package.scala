@@ -7,10 +7,11 @@ import cats.implicits._
 package object lexorank {
   type Pk = Int
   type Or[A, B] = Either[B, A]
-  type AnnotatedIO[A] = WriterT[IO, List[String], A]
+  type Log = List[String]
+  type AnnotatedIO[A] = WriterT[IO, Log, A]
 
   object AnnotatedIO {
     def apply[A](body: => A): AnnotatedIO[A] =
-      WriterT.liftF[IO, List[String], A](IO(body))
+      WriterT.liftF[IO, Log, A](IO(body))
   }
 }
