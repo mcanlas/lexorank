@@ -2,6 +2,11 @@ package com.htmlism.lexorank
 
 import cats.effect._
 
+/**
+ * We can consciously choose not to support the use case of inserting new records in storage that currently has no
+ * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
+ * changing. Admin users can seed the database with at least one row to facilitate this.
+ */
 class Storage[A] {
   case class Row(id: Pk, rank: A)
 
