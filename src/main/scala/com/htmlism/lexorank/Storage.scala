@@ -15,7 +15,7 @@ class Storage[A] {
    * @param before
    * @return
    */
-  def changePosition(id: Pk, after: Option[Pk], before: Option[Pk]): AnnotatedIO[Either[LexorankError, Row]] =
+  def changePosition(id: Pk, after: Option[Pk], before: Option[Pk]): AnnotatedIO[Either[ChangeError, Row]] =
       if (after.contains(id))
         AnnotatedIO(Left(IdWasInAfter))
 
