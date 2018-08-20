@@ -1,3 +1,5 @@
+initialCommands in console := "import com.htmlism.lexorank._"
+
 libraryDependencies += "org.typelevel" %% "cats-core" % "1.2.0"
 
 libraryDependencies += "org.typelevel" %% "mouse" % "0.18"
