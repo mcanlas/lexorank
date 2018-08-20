@@ -1,6 +1,7 @@
 package com.htmlism.lexorank
 
 import cats.effect._
+import mouse.all._
 
 /**
  * We can consciously choose not to support the use case of inserting new records in storage that currently has no
@@ -26,30 +27,22 @@ class Storage[A] {
 
     else if (afterBefore.before.contains(id))
       AnnotatedIO(Left(IdWasInBefore))
-    else {
-      // spent one connection
-      exists(id)
-        .map { t =>
-          if (t)
-            Right(???)
-          else
-            Left(IdDoesNotExistInStorage)
-        }
-    }
+    else
+      getSnapshot
+        .map(doIt(id))
 
-  def getAllRanks: AnnotatedIO[List[A]] =
-    AnnotatedIO {
-      xs.map(_.rank).toList
-    }
+  def doIt(id: Pk)(xs: List[Row]): Either[ChangeError, Row] =
+    xs
+      .map(_.id)
+      .contains(id) |> { t =>
+        if (t)
+          Right(???)
+        else
+          Left(IdDoesNotExistInStorage)
+      }
 
-  def getAllIds: AnnotatedIO[List[Pk]] =
-    AnnotatedIO {
-      xs.map(_.id).toList
-    }
-
-  def exists(id: Pk): AnnotatedIO[Boolean] =
-    getAllIds
-      .map(_.contains(id))
+  def getSnapshot: AnnotatedIO[List[Row]] =
+    AnnotatedIO(xs.toList)
 
   def withRow(id: Pk, rank: A): IO[Row] =
     IO {
