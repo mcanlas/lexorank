@@ -16,6 +16,9 @@ class Storage[K, A : Rankable] {
    */
   case class Update(pk: K, from: A, to: A)
 
+  /**
+   * This is bi-directional map between PKs and ranks.
+   */
   private val xs = collection.mutable.Buffer.empty[Row]
 
   /**
