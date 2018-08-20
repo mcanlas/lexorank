@@ -21,21 +21,21 @@ class Storage[A] {
    * @return
    */
   def changePosition(id: Pk, afterBefore: AfterBefore[Pk]): AnnotatedIO[Either[ChangeError, Row]] =
-      if (afterBefore.after.contains(id))
-        AnnotatedIO(Left(IdWasInAfter))
+    if (afterBefore.after.contains(id))
+      AnnotatedIO(Left(IdWasInAfter))
 
-      else if (afterBefore.before.contains(id))
-        AnnotatedIO(Left(IdWasInBefore))
-      else {
-        // spent one connection
-        exists(id)
-          .map { t =>
-            if (t)
-              Right(???)
-            else
-              Left(IdDoesNotExistInStorage)
-          }
-      }
+    else if (afterBefore.before.contains(id))
+      AnnotatedIO(Left(IdWasInBefore))
+    else {
+      // spent one connection
+      exists(id)
+        .map { t =>
+          if (t)
+            Right(???)
+          else
+            Left(IdDoesNotExistInStorage)
+        }
+    }
 
   def getAllRanks: AnnotatedIO[List[A]] =
     AnnotatedIO {
