@@ -15,11 +15,6 @@ class Storage[A] {
 
   /**
    * ID cannot be equal either of the provided `before` or `after`.
-   *
-   * @param id
-   * @param after
-   * @param before
-   * @return
    */
   def changePosition(id: Pk, afterBefore: AfterBefore[Pk]): AnnotatedIO[Either[ChangeError, Row]] =
     if (afterBefore.after.contains(id))
