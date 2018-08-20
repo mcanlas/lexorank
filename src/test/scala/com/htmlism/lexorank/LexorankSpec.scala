@@ -7,7 +7,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `after`" in {
     forAll { key: Int =>
       val ret =
-        new Storage[String]
+        new Storage[Int, String]
           .changePosition(key, AfterBefore.after(key))
           .value
           .unsafeRunSync()
@@ -19,7 +19,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `before`" in {
     forAll { key: Int =>
       val ret =
-        new Storage[String]
+        new Storage[Int, String]
           .changePosition(key, AfterBefore.before(key))
           .value
           .unsafeRunSync()
@@ -32,7 +32,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     forAll { (keyA: Int, keyB: Int) =>
       whenever (keyA != keyB) {
         val ret =
-          new Storage[String]
+          new Storage[Int, String]
             .changePosition(keyA, AfterBefore.after(keyB))
             .value
             .unsafeRunSync()

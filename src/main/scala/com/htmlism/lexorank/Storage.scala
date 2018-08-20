@@ -8,15 +8,15 @@ import mouse.all._
  * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
  * changing. Admin users can seed the database with at least one row to facilitate this.
  */
-class Storage[A] {
-  case class Row(id: Pk, rank: A)
+class Storage[K, A] {
+  case class Row(id: K, rank: A)
 
   private val xs = collection.mutable.Buffer.empty[Row]
 
   /**
    * ID cannot be equal either of the provided `before` or `after`.
    */
-  def changePosition(id: Pk, afterBefore: AfterBefore[Pk]): AnnotatedIO[Either[ChangeError, Row]] =
+  def changePosition(id: K, afterBefore: AfterBefore[K]): AnnotatedIO[Either[ChangeError, Row]] =
     if (afterBefore.after.contains(id))
       AnnotatedIO(Left(IdWasInAfter))
 
@@ -26,7 +26,7 @@ class Storage[A] {
       getSnapshot
         .map(doIt(id))
 
-  def doIt(id: Pk)(xs: List[Row]): Either[ChangeError, Row] =
+  def doIt(id: K)(xs: List[Row]): Either[ChangeError, Row] =
     xs
       .map(_.id)
       .contains(id) |> { t =>
@@ -39,7 +39,7 @@ class Storage[A] {
   def getSnapshot: AnnotatedIO[List[Row]] =
     AnnotatedIO(xs.toList)
 
-  def withRow(id: Pk, rank: A): IO[Row] =
+  def withRow(id: K, rank: A): IO[Row] =
     IO {
       val ret = Row(id, rank)
 
