@@ -12,9 +12,9 @@ trait Rankable[A] {
 
   def max: A
 
-  def increment(a: A): A Or OverflowError
+  def increment(a: A): A Or MaxOverflow
 
-  def decrement(a: A): A Or OverflowError
+  def decrement(a: A): A Or MinUnderflow
 
   def eq(x: A, y: A): Boolean
 
@@ -23,9 +23,11 @@ trait Rankable[A] {
 
 sealed trait OverflowError
 
-case object MaxOverflow extends OverflowError
+sealed trait MaxOverflow
+case object MaxOverflow extends MaxOverflow
 
-case object MinUnderflow extends OverflowError
+sealed trait MinUnderflow
+case object MinUnderflow extends MinUnderflow
 
 sealed trait BetweenFailed
 
@@ -40,7 +42,7 @@ object Rankable {
       def max: Int =
         Int.MaxValue
 
-      def increment(a: Int): Int Or OverflowError = {
+      def increment(a: Int): Int Or MaxOverflow = {
         val ret = a + 1
 
         if (ret < a)
@@ -49,7 +51,7 @@ object Rankable {
           Right(a)
       }
 
-      def decrement(a: Int): Int Or OverflowError = {
+      def decrement(a: Int): Int Or MinUnderflow = {
         val ret = a - 1
 
         if (ret > a)
