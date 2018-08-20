@@ -18,7 +18,10 @@ trait Rankable[A] {
 
   def eq(x: A, y: A): Boolean
 
-  def between(x: A, y: A): A Or BetweenFailed
+  /**
+   * Generates a value between `x` and `y`, `x` inclusive.
+   */
+  def between(x: A, y: A): A
 }
 
 sealed trait OverflowError
@@ -28,10 +31,6 @@ case object MaxOverflow extends MaxOverflow
 
 sealed trait MinUnderflow
 case object MinUnderflow extends MinUnderflow
-
-sealed trait BetweenFailed
-
-case object BetweenFailed extends BetweenFailed
 
 object Rankable {
   implicit val int: Rankable[Int] =
@@ -62,16 +61,11 @@ object Rankable {
 
       def eq(x: Int, y: Int): Boolean = ???
 
-      def between(x: Int, y: Int): Int Or BetweenFailed = {
+      def between(x: Int, y: Int): Int = {
         val min = Math.min(x, y)
         val max = Math.max(x, y)
 
-        val ret = util.Random.nextInt(max - min) + 1 + min
-
-        if (x != y && ret > min && ret < max)
-          Right(ret)
-        else
-          Left(BetweenFailed)
+        util.Random.nextInt(max - min) + min
       }
     }
 }
