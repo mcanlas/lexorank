@@ -9,7 +9,7 @@ import mouse.all._
  * changing. Admin users can seed the database with at least one row to facilitate this.
  */
 class Storage[K, A] {
-  case class Row(id: K, rank: A)
+  type Row = Entity[K, A]
 
   private val xs = collection.mutable.Buffer.empty[Row]
 
@@ -41,12 +41,12 @@ class Storage[K, A] {
 
   def withRow(id: K, rank: A): IO[Row] =
     IO {
-      val ret = Row(id, rank)
+      val ret = Entity(id, rank)
 
       xs += ret
 
       assert(xs.map(_.id).toSet.size == xs.size, "primary keys are unique")
-      assert(xs.map(_.rank).toSet.size == xs.size, "ranks are unique")
+      assert(xs.map(_.x).toSet.size == xs.size, "ranks are unique")
 
       ret
     }
