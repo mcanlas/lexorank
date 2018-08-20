@@ -20,11 +20,11 @@ class Storage[A] {
    * @param before
    * @return
    */
-  def changePosition(id: Pk, after: Option[Pk], before: Option[Pk]): AnnotatedIO[Either[ChangeError, Row]] =
-      if (after.contains(id))
+  def changePosition(id: Pk, afterBefore: AfterBefore[Pk]): AnnotatedIO[Either[ChangeError, Row]] =
+      if (afterBefore.after.contains(id))
         AnnotatedIO(Left(IdWasInAfter))
 
-      else if (before.contains(id))
+      else if (afterBefore.before.contains(id))
         AnnotatedIO(Left(IdWasInBefore))
       else {
         // spent one connection
