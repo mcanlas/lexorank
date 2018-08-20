@@ -10,13 +10,14 @@ import mouse.all._
  */
 class Storage[K, A] {
   type Row = Entity[K, A]
+  type Snapshot = Map[K, A]
 
   private val xs = collection.mutable.Buffer.empty[Row]
 
   /**
    * ID cannot be equal either of the provided `before` or `after`.
    */
-  def changePosition(id: K, afterBefore: AfterBefore[K]): AnnotatedIO[Either[ChangeError, Row]] =
+  def changePosition(id: K, afterBefore: AfterBefore[K]): AnnotatedIO[Row Or ChangeError] =
     if (afterBefore.after.contains(id))
       AnnotatedIO(Left(IdWasInAfter))
 
@@ -26,18 +27,15 @@ class Storage[K, A] {
       getSnapshot
         .map(doIt(id))
 
-  def doIt(id: K)(xs: List[Row]): Either[ChangeError, Row] =
+  def doIt(id: K)(xs: Snapshot): Row Or ChangeError =
     xs
-      .map(_.id)
-      .contains(id) |> { t =>
-        if (t)
-          Right(???)
-        else
-          Left(IdDoesNotExistInStorage)
+      .get(id)
+      .fold[Row Or ChangeError](Left(IdDoesNotExistInStorage)) { _ =>
+        Right(???)
       }
 
-  def getSnapshot: AnnotatedIO[List[Row]] =
-    AnnotatedIO(xs.toList)
+  def getSnapshot: AnnotatedIO[Snapshot] =
+    AnnotatedIO(xs.map(r => r.id -> r.x).toMap)
 
   def withRow(id: K, rank: A): IO[Row] =
     IO {
