@@ -8,7 +8,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     forAll { key: PosInt =>
       val ret =
         new Storage[PosInt, PosInt]
-          .changePosition(key, AfterBefore.after(key))
+          .changePosition(key, After(key))
           .value
           .unsafeRunSync()
 
@@ -20,7 +20,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     forAll { key: PosInt =>
       val ret =
         new Storage[PosInt, PosInt]
-          .changePosition(key, AfterBefore.before(key))
+          .changePosition(key, Before(key))
           .value
           .unsafeRunSync()
 
@@ -33,7 +33,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
       whenever (keyA != keyB) {
         val ret =
           new Storage[PosInt, PosInt]
-            .changePosition(keyA, AfterBefore.after(keyB))
+            .changePosition(keyA, After(keyB))
             .value
             .unsafeRunSync()
 

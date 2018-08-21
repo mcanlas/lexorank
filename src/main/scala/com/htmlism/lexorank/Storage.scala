@@ -40,7 +40,7 @@ class Storage[K : KeyLike, A : Rankable] {
   /**
    * ID cannot be equal either of the provided `before` or `after`.
    */
-  def changePosition(id: K, afterBefore: AfterBefore[K]): AnnotatedIO[Row Or ChangeError] =
+  def changePosition(id: K, afterBefore: PositionRequest[K]): AnnotatedIO[Row Or ChangeError] =
     if (afterBefore.after.contains(id))
       AnnotatedIO(Left(IdWasInAfter))
 
@@ -61,7 +61,7 @@ class Storage[K : KeyLike, A : Rankable] {
     AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
 
   // TODO when a collision is detected, use the relation to the midpoint to decide. below = increment, above = decrement
-  def generateUpdateSequence(id: K, afterBefore: AfterBefore[K])(snap: Snapshot): List[Update] = {
+  def generateUpdateSequence(id: K, afterBefore: PositionRequest[K])(snap: Snapshot): List[Update] = {
     val ev = Rankable[A]
 
     @tailrec
@@ -89,7 +89,7 @@ class Storage[K : KeyLike, A : Rankable] {
   /**
    * This will be the new rank, regardless. Collided onto values will be pushed out.
    */
-  def generateNewRank(snap: Snapshot)(afterBefore: AfterBefore[K]): A = {
+  def generateNewRank(snap: Snapshot)(afterBefore: PositionRequest[K]): A = {
     val ev = Rankable[A]
 
     val afterRank  = afterBefore.after.flatMap(snap.get).getOrElse(ev.min)
