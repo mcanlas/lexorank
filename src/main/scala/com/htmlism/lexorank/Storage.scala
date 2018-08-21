@@ -8,7 +8,7 @@ import scala.annotation.tailrec
  * changing. Admin users can seed the database with at least one row to facilitate this.
  */
 class Storage[K : KeyLike, A : Rankable] {
-  type Row = Entity[K, A]
+  type Row = Entity[K, Record[A]]
   type Snapshot = Map[K, A]
 
   private var pkSeed: K =
@@ -33,7 +33,7 @@ class Storage[K : KeyLike, A : Rankable] {
 
       withRow(pk, rank)
 
-      Entity(pk, rank)
+      Entity(pk, Record("inserted record", rank))
     }
 
   /**
@@ -57,7 +57,7 @@ class Storage[K : KeyLike, A : Rankable] {
       }
 
   def getSnapshot: AnnotatedIO[Snapshot] =
-    AnnotatedIO(xs.map(r => r.id -> r.x).toMap)
+    AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
 
   // TODO when a collision is detected, use the relation to the midpoint to decide. below = increment, above = decrement
   def generateUpdateSequence(id: K, afterBefore: AfterBefore[K])(snap: Snapshot): List[Update] = {
@@ -99,7 +99,7 @@ class Storage[K : KeyLike, A : Rankable] {
 
   def withRow(id: K, rank: A): this.type =
     {
-      val row = Entity(id, rank)
+      val row = Entity(id, Record("nominal value", rank))
 
       xs += row
 
