@@ -10,6 +10,9 @@ package object lexorank {
   type Log = List[String]
   type AnnotatedIO[A] = WriterT[IO, Log, A]
 
+  type PosInt = PositiveInteger
+  val PosInt = PositiveInteger
+
   object AnnotatedIO {
     def apply[A](body: => A): AnnotatedIO[A] =
       IO(body) |> WriterT.liftF[IO, Log, A]

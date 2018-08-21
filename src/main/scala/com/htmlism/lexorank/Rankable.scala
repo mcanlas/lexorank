@@ -50,39 +50,41 @@ object Rankable {
   def apply[A : Rankable]: Rankable[A] =
     implicitly[Rankable[A]]
 
-  implicit val int: Rankable[Int] =
-    new Rankable[Int] {
-      def min: Int =
-        0
+  implicit val posInt: Rankable[PosInt] =
+    new Rankable[PosInt] {
+      def min: PosInt =
+        PosInt(0)
 
-      def max: Int =
-        Int.MaxValue
+      def max: PosInt =
+        PosInt(Int.MaxValue)
 
-      def increment(a: Int): Int Or MaxOverflow = {
-        val ret = a + 1
+      def increment(a: PosInt): PosInt Or MaxOverflow = {
+        val ret = a.n + 1
 
-        if (ret < a)
+        if (ret < a.n)
           Left(MaxOverflow)
         else
           Right(a)
       }
 
-      def decrement(a: Int): Int Or MinUnderflow = {
-        val ret = a - 1
+      def decrement(a: PosInt): PosInt Or MinUnderflow = {
+        val ret = a.n - 1
 
-        if (ret > a)
+        if (ret > a.n)
           Left(MinUnderflow)
         else
           Right(a)
       }
 
-      def eq(x: Int, y: Int): Boolean = ???
+      def eq(x: PosInt, y: PosInt): Boolean = ???
 
-      def between(x: Int, y: Int): Int = {
-        val min = Math.min(x, y)
-        val max = Math.max(x, y)
+      def between(x: PosInt, y: PosInt): PosInt = {
+        val min = Math.min(x.n, y.n)
+        val max = Math.max(x.n, y.n)
 
-        util.Random.nextInt(max - min) + min
+        PosInt {
+          util.Random.nextInt(max - min) + min
+        }
       }
     }
 }

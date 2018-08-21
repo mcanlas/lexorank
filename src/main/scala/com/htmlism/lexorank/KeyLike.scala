@@ -7,10 +7,10 @@ trait KeyLike[A] {
 }
 
 object KeyLike {
-  implicit val int: KeyLike[Int] =
-    new KeyLike[Int] {
-      def first: Int = 1
+  implicit val posInt: KeyLike[PosInt] =
+    new KeyLike[PosInt] {
+      def first: PosInt = PosInt(1)
 
-      def increment(a: Int): Int = a + 1
+      def increment(a: PosInt): PosInt = PosInt(a.n + 1)
     }
 }
