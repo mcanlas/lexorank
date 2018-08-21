@@ -30,10 +30,11 @@ class Storage[K : KeyLike, A : Rankable] {
       pkSeed = implicitly[KeyLike[K]].increment(pkSeed)
 
       val rank = implicitly[Rankable[A]].anywhere
+      val rec = Record("inserted record", rank)
 
-      withRow(pk, rank)
+      withRow(pk, rec)
 
-      Entity(pk, Record("inserted record", rank))
+      Entity(pk, rec)
     }
 
   /**
@@ -97,9 +98,9 @@ class Storage[K : KeyLike, A : Rankable] {
     ev.between(afterRank, beforeRank)
   }
 
-  def withRow(id: K, rank: A): this.type =
+  def withRow(id: K, record: Record[A]): this.type =
     {
-      val row = Entity(id, Record("nominal value", rank))
+      val row = Entity(id, record)
 
       xs += row
 
