@@ -77,7 +77,7 @@ class Storage[K : KeyLike, A : Rankable] {
           up :: updates
       }
 
-    val newRank = generateNewRank(snap)(id, afterBefore)
+    val newRank = generateNewRank(snap)(afterBefore)
     val update = Update(id, snap(id), newRank)
 
     tryToApply(update, Nil)
@@ -89,7 +89,7 @@ class Storage[K : KeyLike, A : Rankable] {
   /**
    * This will be the new rank, regardless. Collided onto values will be pushed out.
    */
-  def generateNewRank(snap: Snapshot)(id: K, afterBefore: AfterBefore[K]): A = {
+  def generateNewRank(snap: Snapshot)(afterBefore: AfterBefore[K]): A = {
     val ev = Rankable[A]
 
     val afterRank  = afterBefore.after.flatMap(snap.get).getOrElse(ev.min)
