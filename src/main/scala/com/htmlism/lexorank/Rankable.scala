@@ -38,6 +38,12 @@ trait Rankable[A] {
    */
   def anywhere: A =
     between(min, max)
+
+  def after(x: A): A =
+    between(x, max)
+
+  def before(x: A): A =
+    between(min, x)
 }
 
 sealed trait OverflowError
