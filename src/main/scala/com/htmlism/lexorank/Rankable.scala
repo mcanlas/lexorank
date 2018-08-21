@@ -11,9 +11,9 @@ trait Rankable[A] {
   /**
    * Using unsigned math. Should be "zero".
    */
-  def min: A
+  protected def min: A
 
-  def max: A
+  protected def max: A
 
   def increment(a: A): A Or MaxOverflow
 
@@ -63,10 +63,10 @@ object Rankable {
 
   implicit val posInt: Rankable[PosInt] =
     new Rankable[PosInt] {
-      def min: PosInt =
+      protected def min: PosInt =
         PosInt(0)
 
-      def max: PosInt =
+      protected def max: PosInt =
         PosInt(Int.MaxValue)
 
       def increment(a: PosInt): PosInt Or MaxOverflow = {
@@ -87,7 +87,8 @@ object Rankable {
           Right(a)
       }
 
-      def eq(x: PosInt, y: PosInt): Boolean = ???
+      def eq(x: PosInt, y: PosInt): Boolean =
+        x.n == y.n
 
       def between(x: PosInt, y: PosInt): PosInt = {
         val min = Math.min(x.n, y.n)

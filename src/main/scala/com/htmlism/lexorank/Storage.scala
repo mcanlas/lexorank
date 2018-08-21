@@ -40,11 +40,11 @@ class Storage[K : KeyLike, A : Rankable] {
   /**
    * ID cannot be equal either of the provided `before` or `after`.
    */
-  def changePosition(id: K, afterBefore: PositionRequest[K]): AnnotatedIO[Row Or ChangeError] =
-    if (afterBefore.after.contains(id))
+  def changePosition(id: K, req: PositionRequest[K]): AnnotatedIO[Row Or ChangeError] =
+    if (req.after.contains(id))
       AnnotatedIO(Left(IdWasInAfter))
 
-    else if (afterBefore.before.contains(id))
+    else if (req.before.contains(id))
       AnnotatedIO(Left(IdWasInBefore))
     else
       getSnapshot
@@ -61,7 +61,7 @@ class Storage[K : KeyLike, A : Rankable] {
     AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
 
   // TODO when a collision is detected, use the relation to the midpoint to decide. below = increment, above = decrement
-  def generateUpdateSequence(id: K, afterBefore: PositionRequest[K])(snap: Snapshot): List[Update] = {
+  def generateUpdateSequence(id: K, req: PositionRequest[K])(snap: Snapshot): List[Update] = {
     val ev = Rankable[A]
 
     @tailrec
@@ -77,7 +77,7 @@ class Storage[K : KeyLike, A : Rankable] {
           up :: updates
       }
 
-    val newRank = generateNewRank(snap)(afterBefore)
+    val newRank = generateNewRank(snap)(req)
     val update = Update(id, snap(id), newRank)
 
     tryToApply(update, Nil)
@@ -89,13 +89,25 @@ class Storage[K : KeyLike, A : Rankable] {
   /**
    * This will be the new rank, regardless. Collided onto values will be pushed out.
    */
-  def generateNewRank(snap: Snapshot)(afterBefore: PositionRequest[K]): A = {
-    val ev = Rankable[A]
+  def generateNewRank(snap: Snapshot)(req: PositionRequest[K]): A = {
+    val rk = Rankable[A]
 
-    val afterRank  = afterBefore.after.flatMap(snap.get).getOrElse(ev.min)
-    val beforeRank = afterBefore.before.flatMap(snap.get).getOrElse(ev.max)
+    val afterRank  = req.after.flatMap(snap.get)
+    val beforeRank = req.before.flatMap(snap.get)
 
-    ev.between(afterRank, beforeRank)
+    (afterRank, beforeRank) match {
+      case (Some(min), Some(max)) =>
+        rk.between(min, max)
+
+      case (Some(min), None) =>
+        rk.after(min)
+
+      case (None, Some(max)) =>
+        rk.before(max)
+
+      case (None, None) =>
+        rk.anywhere
+    }
   }
 
   def withRow(id: K, record: Record[A]): this.type =
