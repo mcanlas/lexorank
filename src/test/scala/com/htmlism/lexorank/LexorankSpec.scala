@@ -42,9 +42,14 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     }
   }
 
-  it should "be true" in {
-    forAll { xs: Bimap[Int, Int] =>
-      1 shouldBe 1
-    }
+  "insertion" should "always be successful given an empty store" in {
+    val store = new Storage[Int, Int]
+
+    store
+      .insertAt(None, None)
+      .value
+      .unsafeRunSync()
+
+    store.size shouldBe 1
   }
 }

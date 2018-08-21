@@ -8,6 +8,9 @@ package com.htmlism.lexorank
  * @tparam A
  */
 trait Rankable[A] {
+  /**
+   * Using unsigned math. Should be "zero".
+   */
   def min: A
 
   def max: A
@@ -22,6 +25,14 @@ trait Rankable[A] {
    * Generates a value between `x` and `y`, `x` inclusive.
    */
   def between(x: A, y: A): A
+
+  /**
+   * Generates a value between `min` and `max`.
+   *
+   * Derived.
+   */
+  def anywhere: A =
+    between(min, max)
 }
 
 sealed trait OverflowError
@@ -42,7 +53,7 @@ object Rankable {
   implicit val int: Rankable[Int] =
     new Rankable[Int] {
       def min: Int =
-        Int.MinValue
+        0
 
       def max: Int =
         Int.MaxValue

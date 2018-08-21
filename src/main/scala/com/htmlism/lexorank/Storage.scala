@@ -7,9 +7,12 @@ import scala.annotation.tailrec
  * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
  * changing. Admin users can seed the database with at least one row to facilitate this.
  */
-class Storage[K, A : Rankable] {
+class Storage[K : KeyLike, A : Rankable] {
   type Row = Entity[K, A]
   type Snapshot = Map[K, A]
+
+  private var pkSeed: K =
+    implicitly[KeyLike[K]].first
 
   /**
    * `from` is not logically necessary but does make for safer, more-specific SQL statements.
@@ -20,6 +23,18 @@ class Storage[K, A : Rankable] {
    * This is bi-directional map between PKs and ranks.
    */
   private val xs = collection.mutable.Buffer.empty[Row]
+
+  def insertAt(after: Option[K], before: Option[K]): AnnotatedIO[Row] =
+    AnnotatedIO {
+      val pk = pkSeed
+      pkSeed = implicitly[KeyLike[K]].increment(pkSeed)
+
+      val rank = implicitly[Rankable[A]].anywhere
+
+      withRow(pk, rank)
+
+      Entity(pk, rank)
+    }
 
   /**
    * ID cannot be equal either of the provided `before` or `after`.
@@ -93,4 +108,7 @@ class Storage[K, A : Rankable] {
 
       this
     }
+
+  def size: Int =
+    xs.size
 }
