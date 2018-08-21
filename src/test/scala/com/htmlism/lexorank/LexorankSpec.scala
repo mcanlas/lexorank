@@ -3,7 +3,7 @@ package com.htmlism.lexorank
 import org.scalatest._
 import org.scalatest.prop._
 
-class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks {
+class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks with Arbitraries {
   it should "domain error if pk exists in `after`" in {
     forAll { key: Int =>
       val ret =
@@ -39,6 +39,12 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
 
         ret shouldBe Left(IdDoesNotExistInStorage)
       }
+    }
+  }
+
+  it should "be true" in {
+    forAll { xs: Bimap[Int, Int] =>
+      1 shouldBe 1
     }
   }
 }
