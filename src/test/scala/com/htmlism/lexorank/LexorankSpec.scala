@@ -42,14 +42,16 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     }
   }
 
-  "insertion" should "always be successful given an empty store" in {
-    val store = new Storage[PosInt, PosInt]
+  "insertion" should "always be successful given an int-sized store" in {
+    forAll { store: Storage[PosInt, PosInt] =>
+      val previousSize = store.size
 
-    store
-      .insertAt("", None, None)
-      .value
-      .unsafeRunSync()
+      store
+        .insertAt("", None, None)
+        .value
+        .unsafeRunSync()
 
-    store.size shouldBe 1
+      store.size shouldBe previousSize + 1
+    }
   }
 }

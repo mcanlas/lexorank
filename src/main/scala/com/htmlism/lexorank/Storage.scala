@@ -105,7 +105,7 @@ class Storage[K : KeyLike, A : Rankable] {
       xs += row
 
       assert(xs.map(_.id).toSet.size == xs.size, "primary keys are unique")
-      assert(xs.map(_.x).toSet.size == xs.size, "ranks are unique")
+      assert(xs.map(_.x.rank).toSet.size == xs.size, "ranks are unique")
 
       this
     }
