@@ -46,7 +46,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     val store = new Storage[Int, Int]
 
     store
-      .insertAt(None, None)
+      .insertAt("", None, None)
       .value
       .unsafeRunSync()
 
