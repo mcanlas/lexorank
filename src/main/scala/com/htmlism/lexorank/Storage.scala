@@ -24,7 +24,7 @@ class Storage[K : KeyLike, A : Rankable] {
    */
   private val xs = collection.mutable.Buffer.empty[Row]
 
-  def insertAt(payload: String, after: Option[K], before: Option[K]): AnnotatedIO[Row] =
+  def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
     AnnotatedIO {
       val pk = pkSeed
       pkSeed = implicitly[KeyLike[K]].increment(pkSeed)

@@ -47,7 +47,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
       val previousSize = store.size
 
       store
-        .insertAt("", None, None)
+        .insertAt("", Anywhere)
         .value
         .unsafeRunSync()
 
