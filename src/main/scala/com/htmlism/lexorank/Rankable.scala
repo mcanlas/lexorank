@@ -19,6 +19,11 @@ trait Rankable[A] {
 
   def decrement(a: A): A Or MinUnderflow
 
+  /**
+   * Used to determine if increment or decrement is used to resolve collisions.
+   */
+  def collisionStrategy(a: A): CollisionStrategy
+
   def eq(x: A, y: A): Boolean
 
   /**
@@ -86,5 +91,15 @@ object Rankable {
           util.Random.nextInt(max - min) + min
         }
       }
+
+      def collisionStrategy(a: PosInt): CollisionStrategy =
+        if (a.n < max.n / 2)
+          MoveUp
+        else
+          MoveDown
     }
 }
+
+sealed trait CollisionStrategy
+case object MoveDown extends CollisionStrategy
+case object MoveUp   extends CollisionStrategy
