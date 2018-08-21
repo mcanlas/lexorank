@@ -7,17 +7,17 @@ import scala.annotation.tailrec
  * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
  * changing. Admin users can seed the database with at least one row to facilitate this.
  */
-class Storage[K : KeyLike, A : Rankable] {
-  type Row = Entity[K, Record[A]]
-  type Snapshot = Map[K, A]
+class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
+  type Row = Entity[K, Record[R]]
+  type Snapshot = Map[K, R]
 
   private var pkSeed: K =
-    implicitly[KeyLike[K]].first
+    K.first
 
   /**
    * `from` is not logically necessary but does make for safer, more-specific SQL statements.
    */
-  case class Update(pk: K, from: A, to: A)
+  case class Update(pk: K, from: R, to: R)
 
   /**
    * This is bi-directional map between PKs and ranks.
@@ -27,9 +27,9 @@ class Storage[K : KeyLike, A : Rankable] {
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
     AnnotatedIO {
       val pk = pkSeed
-      pkSeed = implicitly[KeyLike[K]].increment(pkSeed)
+      pkSeed = K.increment(pkSeed)
 
-      val rank = implicitly[Rankable[A]].anywhere
+      val rank = R.anywhere
       val rec = Record(payload, rank)
 
       withRow(pk, rec)
@@ -62,7 +62,7 @@ class Storage[K : KeyLike, A : Rankable] {
 
   // TODO when a collision is detected, use the relation to the midpoint to decide. below = increment, above = decrement
   def generateUpdateSequence(id: K, req: PositionRequest[K])(snap: Snapshot): List[Update] = {
-    val ev = Rankable[A]
+    val ev = Rankable[R]
 
     @tailrec
     def tryToApply(up: Update, updates: List[Update]): List[Update] =
@@ -83,14 +83,14 @@ class Storage[K : KeyLike, A : Rankable] {
     tryToApply(update, Nil)
   }
 
-  def rankCollidesAt(snap: Snapshot)(rank: A): Option[(K, A)] =
-    snap.find { case (_, a) => a == rank }
+  def rankCollidesAt(snap: Snapshot)(rank: R): Option[(K, R)] =
+    snap.find { case (_, r) => R.eq(r, rank) }
 
   /**
    * This will be the new rank, regardless. Collided onto values will be pushed out.
    */
-  def generateNewRank(snap: Snapshot)(req: PositionRequest[K]): A = {
-    val rk = Rankable[A]
+  def generateNewRank(snap: Snapshot)(req: PositionRequest[K]): R = {
+    val rk = Rankable[R]
 
     val afterRank  = req.after.flatMap(snap.get)
     val beforeRank = req.before.flatMap(snap.get)
@@ -110,7 +110,7 @@ class Storage[K : KeyLike, A : Rankable] {
     }
   }
 
-  def withRow(id: K, record: Record[A]): this.type =
+  def withRow(id: K, record: Record[R]): this.type =
     {
       val row = Entity(id, record)
 
