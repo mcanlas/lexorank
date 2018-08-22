@@ -11,7 +11,7 @@ import mouse.all._
  * changing. Admin users can seed the database with at least one row to facilitate this.
  */
 class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
-  type Row = Entity[K, Record[R]]
+  type Row = (K, Record[R])
   type Snapshot = Map[K, R]
   type Update = RankUpdate[K, R]
 
@@ -21,7 +21,8 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   /**
    * This is bi-directional map between PKs and ranks.
    */
-  private val xs = collection.mutable.Buffer.empty[Row]
+  private val xs =
+    collection.mutable.Map.empty[K, Record[R]]
 
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
     getSnapshot >>= insertAtReally(payload, pos)
@@ -38,7 +39,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
       withRow(pk, rec)
 
-      Entity(pk, rec)
+      (pk, rec)
     }
 
   /**
@@ -62,7 +63,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
       }
 
   private def getSnapshot: AnnotatedIO[Snapshot] =
-    AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
+    AnnotatedIO(xs.map(r => r._1 -> r._2.rank).toMap)
 
   private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] =
     generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
@@ -134,12 +135,11 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
   def withRow(id: K, record: Record[R]): this.type =
     {
-      val row = Entity(id, record)
+      val row = (id, record)
 
       xs += row
 
-      assert(xs.map(_.id).toSet.size == xs.size, "primary keys are unique")
-      assert(xs.map(_.x.rank).toSet.size == xs.size, "ranks are unique")
+      assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
 
       this
     }
