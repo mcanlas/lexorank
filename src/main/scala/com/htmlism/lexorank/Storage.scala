@@ -61,13 +61,11 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
     AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
 
   def generateUpdateSequence(id: K, req: PositionRequest[K])(snap: Snapshot): List[Update] = {
-    val ev = Rankable[R]
-
     @tailrec
     def tryToApply(up: Update, updates: List[Update]): List[Update] =
       rankCollidesAt(snap)(up.to) match {
         case Some((k, a)) =>
-          val newRankForCollision = ev.decrement(a).toOption.get // TODO safety
+          val newRankForCollision = R.decrement(a).toOption.get // TODO safety
           val evadeCollision = Update(k, a, newRankForCollision)
 
           tryToApply(evadeCollision, up :: updates)
@@ -89,23 +87,21 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
    * This will be the new rank, regardless. Collided onto values will be pushed out.
    */
   def generateNewRank(snap: Snapshot)(req: PositionRequest[K]): R = {
-    val rk = Rankable[R]
-
     val afterRank  = req.after.flatMap(snap.get)
     val beforeRank = req.before.flatMap(snap.get)
 
     (afterRank, beforeRank) match {
       case (Some(min), Some(max)) =>
-        rk.between(min, max)
+        R.between(min, max)
 
       case (Some(min), None) =>
-        rk.after(min)
+        R.after(min)
 
       case (None, Some(max)) =>
-        rk.before(max)
+        R.before(max)
 
       case (None, None) =>
-        rk.anywhere
+        R.anywhere
     }
   }
 

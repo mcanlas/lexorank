@@ -55,12 +55,6 @@ sealed trait MinUnderflow
 case object MinUnderflow extends MinUnderflow
 
 object Rankable {
-  /**
-   * The summon pattern!
-   */
-  def apply[A : Rankable]: Rankable[A] =
-    implicitly[Rankable[A]]
-
   implicit val posInt: Rankable[PosInt] =
     new Rankable[PosInt] {
       protected def min: PosInt =
