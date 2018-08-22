@@ -29,7 +29,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
     getSnapshot >>= insertAtReally(payload, pos)
 
-  def insertAtReally(payload: String, pos: PositionRequest[K])(snap: Snapshot) =
+  def insertAtReally(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
     AnnotatedIO {
       val pk = pkSeed
       pkSeed = K.increment(pkSeed)
@@ -56,8 +56,8 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
       getSnapshot
         .map(doIt(id))
 
-  def doIt(id: K)(xs: Snapshot): Row Or ChangeError =
-    xs
+  def doIt(id: K)(ctx: Snapshot): Row Or ChangeError =
+    ctx
       .get(id)
       .fold[Row Or ChangeError](Left(IdDoesNotExistInStorage)) { _ =>
         Right(???)
@@ -66,10 +66,10 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   def getSnapshot: AnnotatedIO[Snapshot] =
     AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
 
-  def generateUpdateSequence(id: K, req: PositionRequest[K])(snap: Snapshot): List[Update] = {
+  def generateUpdateSequence(id: K, req: PositionRequest[K])(ctx: Snapshot): List[Update] = {
     @tailrec
     def tryToApply(up: Update, updates: List[Update]): List[Update] =
-      rankCollidesAt(snap)(up.to) match {
+      rankCollidesAt(ctx)(up.to) match {
         case Some((k, a)) =>
           val newRankForCollision = R.decrement(a).toOption.get // TODO safety
           val evadeCollision = Update(k, a, newRankForCollision)
@@ -80,21 +80,21 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
           up :: updates
       }
 
-    val newRank = generateNewRank(snap)(req)
-    val update = Update(id, snap(id), newRank)
+    val newRank = generateNewRank(ctx)(req)
+    val update = Update(id, ctx(id), newRank)
 
     tryToApply(update, Nil)
   }
 
-  def rankCollidesAt(snap: Snapshot)(rank: R): Option[(K, R)] =
-    snap.find { case (_, r) => R.eq(r, rank) }
+  def rankCollidesAt(ctx: Snapshot)(rank: R): Option[(K, R)] =
+    ctx.find { case (_, r) => R.eq(r, rank) }
 
   /**
    * This will be the new rank, regardless. Collided onto values will be pushed out.
    */
-  def generateNewRank(snap: Snapshot)(req: PositionRequest[K]): R = {
-    val afterRank  = req.after.flatMap(snap.get)
-    val beforeRank = req.before.flatMap(snap.get)
+  def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R = {
+    val afterRank  = req.after.flatMap(ctx.get)
+    val beforeRank = req.before.flatMap(ctx.get)
 
     (afterRank, beforeRank) match {
       case (Some(min), Some(max)) =>
