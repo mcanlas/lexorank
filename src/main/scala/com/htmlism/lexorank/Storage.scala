@@ -3,6 +3,7 @@ package com.htmlism.lexorank
 import scala.annotation.tailrec
 
 import cats.implicits._
+import mouse.all._
 
 /**
  * We can consciously choose not to support the use case of inserting new records in storage that currently has no
@@ -68,21 +69,19 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
   def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] = {
     @tailrec
-    def makeSpaceFor(rank: R, updates: List[Update]): List[Update] =
+    def makeSpaceFor(updates: List[Update])(rank: R): List[Update] =
       rankCollidesAt(ctx)(rank) match {
         case Some((k, a)) =>
           val newRankForCollision = R.decrement(a).toOption.get // TODO safety
-          val updateStatement = Update(k, a, newRankForCollision)
+          val butFirstDo = Update(k, a, newRankForCollision)
 
-          makeSpaceFor(newRankForCollision, updateStatement :: updates)
+          makeSpaceFor(butFirstDo :: updates)(newRankForCollision)
 
         case None =>
           updates
       }
 
-    val newRank = generateNewRank(ctx)(pos)
-
-    makeSpaceFor(newRank, Nil)
+    generateNewRank(ctx)(pos) |> makeSpaceFor(Nil)
   }
 
   def rankCollidesAt(ctx: Snapshot)(rank: R): Option[(K, R)] =
