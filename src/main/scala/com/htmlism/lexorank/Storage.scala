@@ -83,7 +83,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
   private def makeSpaceFor(ctx: Snapshot)(rank: R): List[Update] = {
     println("\n\n\n\nentered this space")
-    makeSpaceForReally(new FutureState(ctx, Nil), rank, None)
+    makeSpaceForReally(ctx, Nil, rank, None)
   }
 
   /**
@@ -91,12 +91,13 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
    * were already "taken".
    */
   @tailrec
-  private def makeSpaceForReally(ctx: FutureState, rank: R, oStrat: Option[CollisionStrategy]): List[Update] =
-    ctx.rankCollidesAt(rank) match {
+  private def makeSpaceForReally(ctx: Snapshot, updates: List[Update], rank: R, oStrat: Option[CollisionStrategy]): List[Update] =
+    Lexorank.rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat = oStrat.getOrElse(R.collisionStrategy(rank))
 
         // TODO encapsulate this algorithm
+        // TODO still non-deterministic errors here given key exhaustion
 
         val newRankForCollision =
           strat match {
@@ -112,10 +113,10 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
         val butFirstDo = RankUpdate(k, rank, newRankForCollision)
 
-        makeSpaceForReally(butFirstDo :: ctx, newRankForCollision, Some(strat))
+        makeSpaceForReally(ctx, butFirstDo :: updates, newRankForCollision, Some(strat))
 
       case None =>
-        ctx.updates
+        updates
     }
 
   /**
@@ -156,28 +157,11 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
   override def toString: String =
     (pkSeed :: xs.map(_.toString).toList).mkString("\n")
+}
 
-  /**
-   * Does two things. Models how the database would look if the list of updates it has were applied.
-   *
-   * When resolving a rank collision cascade, the in-memory view/snapshot of the database must continually be updated
-   * to reflect that earlier collisions were solved.
-   */
-  class FutureState(ctx: Snapshot, val updates: List[Update]) {
-    def ::(up: Update): FutureState = {
-      assert(ctx(up.pk) == up.from)
-
-      val updatedCtx = ctx.updated(up.pk, up.to)
-
-      new FutureState(ctx, up :: updates)
-    }
-
-    def rankCollidesAt(rank: R): Option[K] =
-      ctx.find { case (_, r) => R.eq(r, rank) }.map(_._1)
-
-    override def toString: String =
-      (ctx.map(_.toString).toList ::: updates.map(_.toString)).mkString("\n")
-  }
+object Lexorank {
+  def rankCollidesAt[K, R](rank: R)(ctx: Map[K, R])(implicit R: Rankable[R]): Option[K] =
+    ctx.find { case (_, r) => R.eq(r, rank) }.map(_._1)
 }
 
 case class ChangeRequest[A](id: A, pos: PositionRequest[A])

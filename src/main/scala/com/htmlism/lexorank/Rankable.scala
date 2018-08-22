@@ -63,6 +63,9 @@ sealed trait MinUnderflow
 case object MinUnderflow extends MinUnderflow
 
 object Rankable {
+  def apply[A : Rankable]: Rankable[A] =
+    implicitly[Rankable[A]]
+
   implicit def rankablePosInt(implicit RG: RangedGenerator[PosInt]): Rankable[PosInt] =
     new Rankable[PosInt] {
       protected def min: PosInt =
