@@ -32,6 +32,10 @@ trait Rankable[A] {
    * `x` and `y` are unordered.
    *
    * `x` and `y` must not be equal.
+   *
+   * Even between two adjacent values, e.g. `3` and `4`, this function should continue to suggest one of them as a new
+   * candidate rank (probably `3`). Key space exhaustion will be detected when a wrap-around is caused during an
+   * increment/decrement cascade. Therefore, this should emit no errors.
    */
   def between(x: A, y: A): A
 
