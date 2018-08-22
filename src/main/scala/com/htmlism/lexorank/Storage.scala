@@ -30,7 +30,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
     getSnapshot >>= insertAtReally(payload, pos)
 
-  def insertAtReally(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
+  private def insertAtReally(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
     AnnotatedIO {
       val pk = pkSeed
       pkSeed = K.increment(pkSeed)
@@ -57,17 +57,17 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
       getSnapshot
         .map(doIt(id))
 
-  def doIt(id: K)(ctx: Snapshot): Row Or ChangeError =
+  private def doIt(id: K)(ctx: Snapshot): Row Or ChangeError =
     ctx
       .get(id)
       .fold[Row Or ChangeError](Left(IdDoesNotExistInStorage)) { _ =>
         Right(???)
       }
 
-  def getSnapshot: AnnotatedIO[Snapshot] =
+  private def getSnapshot: AnnotatedIO[Snapshot] =
     AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
 
-  def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] = {
+  private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] = {
     @tailrec
     def makeSpaceFor(updates: List[Update])(rank: R): List[Update] =
       rankCollidesAt(ctx)(rank) match {
@@ -84,13 +84,13 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
     generateNewRank(ctx)(pos) |> makeSpaceFor(Nil)
   }
 
-  def rankCollidesAt(ctx: Snapshot)(rank: R): Option[(K, R)] =
+  private def rankCollidesAt(ctx: Snapshot)(rank: R): Option[(K, R)] =
     ctx.find { case (_, r) => R.eq(r, rank) }
 
   /**
    * This will be the new rank, regardless. Collided onto values will be pushed out.
    */
-  def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R = {
+  private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R = {
     val afterRank  = req.after.flatMap(ctx.get)
     val beforeRank = req.before.flatMap(ctx.get)
 
