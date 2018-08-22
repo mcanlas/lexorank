@@ -86,8 +86,6 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
     makeSpaceForReally(new FutureState(ctx, Nil), rank, None)
   }
 
-  var safe = 0
-
   /**
    * If you keep dynamically recomputing your collision strategy, it's possible that you will keep suggesting keys that
    * were already "taken".
@@ -113,10 +111,6 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
         println(s"via $strat $rank became $newRankForCollision")
 
         val butFirstDo = RankUpdate(k, rank, newRankForCollision)
-
-        safe = safe + 1
-        if (safe > 20)
-          throw new Exception
 
         makeSpaceForReally(butFirstDo :: ctx, newRankForCollision, Some(strat))
 
