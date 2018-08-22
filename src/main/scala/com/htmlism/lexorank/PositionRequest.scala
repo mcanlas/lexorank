@@ -25,7 +25,7 @@ case class Before[A](x: A) extends PositionRequest[A] {
     Some(x)
 }
 
-case class After[A] (x: A) extends PositionRequest[A] {
+case class After[A](x: A) extends PositionRequest[A] {
   def after: Option[A] =
     Some(x)
 
