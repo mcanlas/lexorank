@@ -7,7 +7,7 @@ trait KeyLike[A] {
 }
 
 object KeyLike {
-  implicit val posInt: KeyLike[PosInt] =
+  implicit val keyLikePosInt: KeyLike[PosInt] =
     new KeyLike[PosInt] {
       def first: PosInt = PosInt(1)
 

@@ -3,7 +3,7 @@ package com.htmlism.lexorank
 import org.scalatest._
 import org.scalatest.prop._
 
-class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks with Arbitraries {
+class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks with Arbitraries with Determinism {
   it should "domain error if pk exists in `after`" in {
     forAll { key: PosInt =>
       val ret =

@@ -63,7 +63,7 @@ sealed trait MinUnderflow
 case object MinUnderflow extends MinUnderflow
 
 object Rankable {
-  implicit val posInt: Rankable[PosInt] =
+  implicit def rankblePosInt(implicit RG: RangedGenerator[PosInt]): Rankable[PosInt] =
     new Rankable[PosInt] {
       protected def min: PosInt =
         PosInt(0)
@@ -92,14 +92,8 @@ object Rankable {
       def eq(x: PosInt, y: PosInt): Boolean =
         x.n == y.n
 
-      def between(x: PosInt, y: PosInt): PosInt = {
-        val min = Math.min(x.n, y.n)
-        val max = Math.max(x.n, y.n)
-
-        PosInt {
-          util.Random.nextInt(max - min) + min
-        }
-      }
+      def between(x: PosInt, y: PosInt): PosInt =
+        RG.between(x, y)
 
       def collisionStrategy(a: PosInt): CollisionStrategy =
         if (a.n < max.n / 2)
