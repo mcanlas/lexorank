@@ -35,7 +35,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
       pkSeed = K.increment(pkSeed)
 
       // TODO currently may generate an unchecked collision
-      val rank = R.anywhere
+      val rank = generateNewRank(ctx)(pos)
       val rec = Record(payload, rank)
 
       withRow(pk, rec)
@@ -66,7 +66,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   def getSnapshot: AnnotatedIO[Snapshot] =
     AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
 
-  def generateUpdateSequence(id: K, req: PositionRequest[K])(ctx: Snapshot): List[Update] = {
+  def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] = {
     @tailrec
     def makeSpaceFor(rank: R, updates: List[Update]): List[Update] =
       rankCollidesAt(ctx)(rank) match {
@@ -80,7 +80,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
           updates
       }
 
-    val newRank = generateNewRank(ctx)(req)
+    val newRank = generateNewRank(ctx)(pos)
 
     makeSpaceFor(newRank, Nil)
   }
