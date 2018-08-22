@@ -42,7 +42,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     }
   }
 
-  "insertion" should "always be successful given an int-sized store" in {
+  "insertion anywhere" should "always be successful given an int-sized store" in {
     forAll { store: Storage[PosInt, PosInt] =>
       val previousSize = store.size
 
@@ -55,7 +55,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     }
   }
 
-  "insertion" should "error given a crowded key space" ignore {
+  "insertion anywhere" should "error given a crowded key space" ignore {
     forAll { store: Storage[PosInt, UpToTen] =>
       val previousSize = store.size
 
