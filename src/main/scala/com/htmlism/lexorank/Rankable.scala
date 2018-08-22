@@ -63,7 +63,7 @@ sealed trait MinUnderflow
 case object MinUnderflow extends MinUnderflow
 
 object Rankable {
-  implicit def rankblePosInt(implicit RG: RangedGenerator[PosInt]): Rankable[PosInt] =
+  implicit def rankablePosInt(implicit RG: RangedGenerator[PosInt]): Rankable[PosInt] =
     new Rankable[PosInt] {
       protected def min: PosInt =
         PosInt(0)
@@ -72,21 +72,21 @@ object Rankable {
         PosInt(Int.MaxValue)
 
       def increment(a: PosInt): PosInt Or MaxOverflow = {
-        val ret = a.n + 1
+        val inc = a.n + 1
 
-        if (ret < a.n)
+        if (inc < a.n)
           Left(MaxOverflow)
         else
-          Right(a)
+          Right(PosInt(inc))
       }
 
       def decrement(a: PosInt): PosInt Or MinUnderflow = {
-        val ret = a.n - 1
+        val dec = a.n - 1
 
-        if (ret > a.n)
+        if (dec > a.n)
           Left(MinUnderflow)
         else
-          Right(a)
+          Right(PosInt(dec))
       }
 
       def eq(x: PosInt, y: PosInt): Boolean =

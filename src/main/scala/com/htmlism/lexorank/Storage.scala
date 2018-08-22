@@ -35,9 +35,10 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
       val pk = pkSeed
       pkSeed = K.increment(pkSeed)
 
-      // TODO currently may generate an unchecked collision
       val rank = generateNewRank(ctx)(pos)
       val rec = Record(payload, rank)
+
+      rank |> makeSpaceFor(ctx) |> (_.foreach(println))
 
       withRow(pk, rec)
 
@@ -67,25 +68,43 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   private def getSnapshot: AnnotatedIO[Snapshot] =
     AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
 
-  private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] = {
-    @tailrec
-    def makeSpaceFor(updates: List[Update])(rank: R): List[Update] =
-      rankCollidesAt(ctx)(rank) match {
-        case Some((k, a)) =>
-          val newRankForCollision = R.decrement(a).toOption.get // TODO safety
-          val butFirstDo = Update(k, a, newRankForCollision)
+  private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] =
+    generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
 
-          makeSpaceFor(butFirstDo :: updates)(newRankForCollision)
+  private def makeSpaceFor(ctx: Snapshot)(rank: R): List[Update] =
+    makeSpaceForReally(new FutureState(ctx, Nil))(rank)
 
-        case None =>
-          updates
-      }
+  /**
+   * If you keep dynamically recomputing your collision strategy, it's possible that you will keep suggesting keys that
+   * were already "taken".
+   */
+  @tailrec
+  private def makeSpaceForReally(ctx: FutureState)(rank: R): List[Update] =
+    ctx.rankCollidesAt(rank) match {
+      case Some((k, r)) =>
+        assert(r == rank)
 
-    generateNewRank(ctx)(pos) |> makeSpaceFor(Nil)
-  }
+        // TODO encapsulate this algorithm
 
-  private def rankCollidesAt(ctx: Snapshot)(rank: R): Option[(K, R)] =
-    ctx.find { case (_, r) => R.eq(r, rank) }
+        val newRankForCollision =
+          R.collisionStrategy(r) match {
+            case MoveUp =>
+              R.increment(r).toOption.get
+
+            case MoveDown =>
+              R.decrement(r).toOption.get
+          }
+
+        println(ctx)
+        println(s"$r became $newRankForCollision")
+
+        val butFirstDo = Update(k, r, newRankForCollision)
+
+        makeSpaceForReally(butFirstDo :: ctx)(newRankForCollision)
+
+      case None =>
+        ctx.updates
+    }
 
   /**
    * This will be the new rank, regardless. Collided onto values will be pushed out.
@@ -126,6 +145,28 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
   override def toString: String =
     (pkSeed :: xs.map(_.toString).toList).mkString("\n")
+
+  /**
+   * Does two things. Models how the database would look if the list of updates it has were applied.
+   *
+   * When resolving a rank collision cascade, the in-memory view/snapshot of the database must continually be updated
+   * to reflect that earlier collisions were solved.
+   */
+  class FutureState(ctx: Snapshot, val updates: List[Update]) {
+    def ::(up: Update): FutureState = {
+      assert(ctx(up.pk) == up.from)
+
+      val updatedCtx = ctx.updated(up.pk, up.to)
+
+      new FutureState(updatedCtx, up :: updates)
+    }
+
+    def rankCollidesAt(rank: R): Option[(K, R)] =
+      ctx.find { case (_, r) => R.eq(r, rank) }
+
+    override def toString: String =
+      (ctx.map(_.toString).toList ::: updates.map(_.toString)).mkString("\n")
+  }
 }
 
 case class ChangeRequest[A](id: A, pos: PositionRequest[A])

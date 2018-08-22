@@ -3,10 +3,13 @@ package com.htmlism.lexorank
 /**
  * A newtype for integers between 1 and 10 inclusive. Used to simulate an easily-crowded key space.
  */
-case class UpToTen(n: Int)
+case class UpToTen(n: Int) {
+  override def toString: String =
+    n.toString
+}
 
 object UpToTen {
-  implicit val rankable: Rankable[UpToTen] =
+  implicit val rankableUpToTen: Rankable[UpToTen] =
     new Rankable[UpToTen] {
       protected def min: UpToTen =
         UpToTen(0)
@@ -15,21 +18,21 @@ object UpToTen {
         UpToTen(10)
 
       def increment(a: UpToTen): UpToTen Or MaxOverflow = {
-        val ret = a.n + 1
+        val inc = a.n + 1
 
-        if (ret < a.n)
+        if (inc < a.n)
           Left(MaxOverflow)
         else
-          Right(a)
+          Right(UpToTen(inc))
       }
 
       def decrement(a: UpToTen): UpToTen Or MinUnderflow = {
-        val ret = a.n - 1
+        val dec = a.n - 1
 
-        if (ret > a.n)
+        if (dec > a.n)
           Left(MinUnderflow)
         else
-          Right(a)
+          Right(UpToTen(dec))
       }
 
       def eq(x: UpToTen, y: UpToTen): Boolean =
