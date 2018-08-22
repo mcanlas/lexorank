@@ -2,6 +2,8 @@ package com.htmlism.lexorank
 
 import scala.annotation.tailrec
 
+import cats.implicits._
+
 /**
  * We can consciously choose not to support the use case of inserting new records in storage that currently has no
  * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
@@ -25,6 +27,9 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   private val xs = collection.mutable.Buffer.empty[Row]
 
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
+    getSnapshot >>= insertAtReally(payload, pos)
+
+  def insertAtReally(payload: String, pos: PositionRequest[K])(snap: Snapshot) =
     AnnotatedIO {
       val pk = pkSeed
       pkSeed = K.increment(pkSeed)
