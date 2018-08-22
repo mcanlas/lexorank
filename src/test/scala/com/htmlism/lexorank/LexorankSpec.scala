@@ -65,6 +65,10 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
         .insertAt("", Anywhere)
         .value
         .unsafeRunSync()
+
+      println
+      println
+      println
     }
 
     store.size shouldBe limit

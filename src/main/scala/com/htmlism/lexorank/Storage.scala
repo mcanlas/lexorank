@@ -71,36 +71,44 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] =
     generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
 
-  private def makeSpaceFor(ctx: Snapshot)(rank: R): List[Update] =
-    makeSpaceForReally(new FutureState(ctx, Nil), rank)
+  private def makeSpaceFor(ctx: Snapshot)(rank: R): List[Update] = {
+    println("\n\n\n\nentered this space")
+    makeSpaceForReally(new FutureState(ctx, Nil), rank, None)
+  }
+
+  var safe = 0
 
   /**
    * If you keep dynamically recomputing your collision strategy, it's possible that you will keep suggesting keys that
    * were already "taken".
    */
   @tailrec
-  private def makeSpaceForReally(ctx: FutureState, rank: R): List[Update] =
+  private def makeSpaceForReally(ctx: FutureState, rank: R, oStrat: Option[CollisionStrategy]): List[Update] =
     ctx.rankCollidesAt(rank) match {
-      case Some((k, r)) =>
-        assert(r == rank)
+      case Some(k) =>
+        val strat = oStrat.getOrElse(R.collisionStrategy(rank))
 
         // TODO encapsulate this algorithm
 
         val newRankForCollision =
-          R.collisionStrategy(r) match {
+          strat match {
             case MoveUp =>
-              R.increment(r).toOption.get
+              R.increment(rank).toOption.get
 
             case MoveDown =>
-              R.decrement(r).toOption.get
+              R.decrement(rank).toOption.get
           }
 
         println(ctx)
-        println(s"$r became $newRankForCollision")
+        println(s"via $strat $rank became $newRankForCollision")
 
-        val butFirstDo = Update(k, r, newRankForCollision)
+        val butFirstDo = Update(k, rank, newRankForCollision)
 
-        makeSpaceForReally(butFirstDo :: ctx, newRankForCollision)
+        safe = safe + 1
+        if (safe > 20)
+          throw new Exception
+
+        makeSpaceForReally(butFirstDo :: ctx, newRankForCollision, Some(strat))
 
       case None =>
         ctx.updates
@@ -161,8 +169,8 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
       new FutureState(updatedCtx, up :: updates)
     }
 
-    def rankCollidesAt(rank: R): Option[(K, R)] =
-      ctx.find { case (_, r) => R.eq(r, rank) }
+    def rankCollidesAt(rank: R): Option[K] =
+      ctx.find { case (_, r) => R.eq(r, rank) }.map(_._1)
 
     override def toString: String =
       (ctx.map(_.toString).toList ::: updates.map(_.toString)).mkString("\n")

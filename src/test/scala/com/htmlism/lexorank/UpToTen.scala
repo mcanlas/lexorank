@@ -5,7 +5,7 @@ package com.htmlism.lexorank
  */
 case class UpToTen(n: Int) {
   override def toString: String =
-    n.toString
+    "T(" + n.toString + ")"
 }
 
 object UpToTen {
@@ -20,7 +20,7 @@ object UpToTen {
       def increment(a: UpToTen): UpToTen Or MaxOverflow = {
         val inc = a.n + 1
 
-        if (inc < a.n)
+        if (inc > 10)
           Left(MaxOverflow)
         else
           Right(UpToTen(inc))
@@ -29,7 +29,7 @@ object UpToTen {
       def decrement(a: UpToTen): UpToTen Or MinUnderflow = {
         val dec = a.n - 1
 
-        if (dec > a.n)
+        if (dec < 0)
           Left(MinUnderflow)
         else
           Right(UpToTen(dec))
