@@ -28,6 +28,10 @@ trait Rankable[A] {
 
   /**
    * Generates a value between `x` and `y`, `x` inclusive.
+   *
+   * `x` and `y` are unordered.
+   *
+   * `x` and `y` must not be equal.
    */
   def between(x: A, y: A): A
 
