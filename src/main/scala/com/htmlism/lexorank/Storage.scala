@@ -68,22 +68,21 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
   def generateUpdateSequence(id: K, req: PositionRequest[K])(ctx: Snapshot): List[Update] = {
     @tailrec
-    def tryToApply(up: Update, updates: List[Update]): List[Update] =
-      rankCollidesAt(ctx)(up.to) match {
+    def makeSpaceFor(rank: R, updates: List[Update]): List[Update] =
+      rankCollidesAt(ctx)(rank) match {
         case Some((k, a)) =>
           val newRankForCollision = R.decrement(a).toOption.get // TODO safety
-          val evadeCollision = Update(k, a, newRankForCollision)
+          val updateStatement = Update(k, a, newRankForCollision)
 
-          tryToApply(evadeCollision, up :: updates)
+          makeSpaceFor(newRankForCollision, updateStatement :: updates)
 
         case None =>
-          up :: updates
+          updates
       }
 
     val newRank = generateNewRank(ctx)(req)
-    val update = Update(id, ctx(id), newRank)
 
-    tryToApply(update, Nil)
+    makeSpaceFor(newRank, Nil)
   }
 
   def rankCollidesAt(ctx: Snapshot)(rank: R): Option[(K, R)] =
