@@ -55,6 +55,21 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     }
   }
 
+  "insertion anywhere" should "work up to the key space limit" ignore {
+    val limit = 10
+
+    val store = new Storage[PosInt, UpToTen]
+
+    for (_ <- 1 to limit) {
+      store
+        .insertAt("", Anywhere)
+        .value
+        .unsafeRunSync()
+    }
+
+    store.size shouldBe limit
+  }
+
   "insertion anywhere" should "error given a crowded key space" ignore {
     forAll { store: Storage[PosInt, UpToTen] =>
       val previousSize = store.size
