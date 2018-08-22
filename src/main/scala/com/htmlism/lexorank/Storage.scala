@@ -60,7 +60,6 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   def getSnapshot: AnnotatedIO[Snapshot] =
     AnnotatedIO(xs.map(r => r.id -> r.x.rank).toMap)
 
-  // TODO when a collision is detected, use the relation to the midpoint to decide. below = increment, above = decrement
   def generateUpdateSequence(id: K, req: PositionRequest[K])(snap: Snapshot): List[Update] = {
     val ev = Rankable[R]
 
