@@ -55,12 +55,13 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     }
   }
 
-  "insertion anywhere" should "work up to the key space limit" ignore {
+  "insertion anywhere" should "work up to the key space limit" in {
     val limit = 10
 
     val store = new Storage[PosInt, UpToTen]
 
-    for (_ <- 1 to limit) {
+    for (n <- 1 to limit) {
+      println(n + ":")
       store
         .insertAt("", Anywhere)
         .value

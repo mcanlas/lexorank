@@ -28,18 +28,31 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
     getSnapshot >>= insertAtReally(payload, pos)
 
   private def insertAtReally(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
-    AnnotatedIO {
+    {
       val pk = pkSeed
       pkSeed = K.increment(pkSeed)
 
       val rank = generateNewRank(ctx)(pos)
       val rec = Record(payload, rank)
 
-      rank |> makeSpaceFor(ctx) |> (_.foreach(println))
+      val preReqUpdates = rank |> makeSpaceFor(ctx)
 
-      withRow(pk, rec)
+      val updatesIO = preReqUpdates.traverse(applyUpdate)
 
-      (pk, rec)
+      val appendIO = {
+        AnnotatedIO {
+          withRow(pk, rec)
+
+          (pk, rec)
+        }
+      }
+
+      updatesIO *> appendIO
+    }
+
+  private def applyUpdate(up: Update): AnnotatedIO[Unit] =
+    AnnotatedIO {
+      xs(up.pk) = Record("", up.to)
     }
 
   /**
@@ -162,7 +175,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
       val updatedCtx = ctx.updated(up.pk, up.to)
 
-      new FutureState(updatedCtx, up :: updates)
+      new FutureState(ctx, up :: updates)
     }
 
     def rankCollidesAt(rank: R): Option[K] =
