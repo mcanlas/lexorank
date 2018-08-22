@@ -72,14 +72,14 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
     generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
 
   private def makeSpaceFor(ctx: Snapshot)(rank: R): List[Update] =
-    makeSpaceForReally(new FutureState(ctx, Nil))(rank)
+    makeSpaceForReally(new FutureState(ctx, Nil), rank)
 
   /**
    * If you keep dynamically recomputing your collision strategy, it's possible that you will keep suggesting keys that
    * were already "taken".
    */
   @tailrec
-  private def makeSpaceForReally(ctx: FutureState)(rank: R): List[Update] =
+  private def makeSpaceForReally(ctx: FutureState, rank: R): List[Update] =
     ctx.rankCollidesAt(rank) match {
       case Some((k, r)) =>
         assert(r == rank)
@@ -100,7 +100,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
         val butFirstDo = Update(k, r, newRankForCollision)
 
-        makeSpaceForReally(butFirstDo :: ctx)(newRankForCollision)
+        makeSpaceForReally(butFirstDo :: ctx, newRankForCollision)
 
       case None =>
         ctx.updates
