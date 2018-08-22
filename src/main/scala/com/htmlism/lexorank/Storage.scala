@@ -13,14 +13,10 @@ import mouse.all._
 class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   type Row = Entity[K, Record[R]]
   type Snapshot = Map[K, R]
+  type Update = RankUpdate[K, R]
 
   private var pkSeed: K =
     K.first
-
-  /**
-   * `from` is not logically necessary but does make for safer, more-specific SQL statements.
-   */
-  case class Update(pk: K, from: R, to: R)
 
   /**
    * This is bi-directional map between PKs and ranks.
@@ -102,7 +98,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
         println(ctx)
         println(s"via $strat $rank became $newRankForCollision")
 
-        val butFirstDo = Update(k, rank, newRankForCollision)
+        val butFirstDo = RankUpdate(k, rank, newRankForCollision)
 
         safe = safe + 1
         if (safe > 20)
@@ -178,3 +174,8 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 }
 
 case class ChangeRequest[A](id: A, pos: PositionRequest[A])
+
+/**
+ * `from` is not logically necessary but does make for safer, more-specific SQL statements.
+ */
+case class RankUpdate[K, R](pk: K, from: R, to: R)
