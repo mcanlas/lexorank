@@ -124,3 +124,5 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   override def toString: String =
     (pkSeed :: xs.map(_.toString).toList).mkString("\n")
 }
+
+case class ChangeRequest[A](id: A, pos: PositionRequest[A])
