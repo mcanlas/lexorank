@@ -54,4 +54,17 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
       store.size shouldBe previousSize + 1
     }
   }
+
+  "insertion" should "error given a crowded key space" ignore {
+    forAll { store: Storage[PosInt, UpToTen] =>
+      val previousSize = store.size
+
+      store
+        .insertAt("", Anywhere)
+        .value
+        .unsafeRunSync()
+
+      store.size shouldBe previousSize + 1
+    }
+  }
 }

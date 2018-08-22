@@ -29,6 +29,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
       val pk = pkSeed
       pkSeed = K.increment(pkSeed)
 
+      // TODO currently may generate an unchecked collision
       val rank = R.anywhere
       val rec = Record(payload, rank)
 
@@ -119,4 +120,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
   def size: Int =
     xs.size
+
+  override def toString: String =
+    (pkSeed :: xs.map(_.toString).toList).mkString("\n")
 }
