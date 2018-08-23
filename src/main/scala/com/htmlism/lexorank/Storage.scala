@@ -17,8 +17,20 @@ import mouse.all._
  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
  */
 class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]) {
+  /**
+   * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
+   */
   type Row = (K, Record[R])
+
+  /**
+   * Easy access for relating unique keys to unique ranks. This is conceptually a bidirectional map.
+   */
   type Snapshot = Map[K, R]
+
+  /**
+   * This represents the desire to update a given row (identified by primary key) to some new rank. At runtime this
+   * would be backed by a SQL UPDATE statement.
+   */
   type Update = RankUpdate[K, R]
 
   private var pkSeed: K =
