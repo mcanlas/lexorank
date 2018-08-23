@@ -1,5 +1,8 @@
 package com.htmlism.lexorank
 
+import cats._
+
+// TODO this probably doesn't need to be a whole ADT
 sealed trait PositionRequest[+A] {
   def before: Option[A]
 
@@ -33,10 +36,18 @@ case class After[A](x: A) extends PositionRequest[A] {
     None
 }
 
-case class Between[A](min: A, max: A) extends PositionRequest[A] {
-  def after: Option[A] =
-    Some(min)
+object Between {
+  def apply[A](min: A, max: A)(implicit A: Eq[A]): Option[Between[A]] =
+    if (A.eqv(min, max))
+      None
+    else
+      Some(new Between(min, max))
 
-  def before: Option[A] =
-    Some(max)
+  private class Between[A](min: A, max: A) extends PositionRequest[A] {
+    def after: Option[A] =
+      Some(min)
+
+    def before: Option[A] =
+      Some(max)
+  }
 }
