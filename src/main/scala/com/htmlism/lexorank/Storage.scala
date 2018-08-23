@@ -86,6 +86,7 @@ class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]
   private def applyUpdate(up: Update): AnnotatedIO[Unit] =
     AnnotatedIO {
       xs(up.pk) = Record("", up.to)
+      assertUniqueRanks()
     }
 
   /**
@@ -195,10 +196,13 @@ class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]
 
       xs += row
 
-      assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
+      assertUniqueRanks()
 
       this
     }
+
+  private def assertUniqueRanks(): Unit =
+    assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
 
   /**
    * Not a part of the public API. For testing only.
