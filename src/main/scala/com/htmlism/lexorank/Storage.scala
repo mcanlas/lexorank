@@ -135,6 +135,18 @@ class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]
       .map(ups => rank -> ups)
   }
 
+  private def getStrat(rank: R, oStrat: Option[CollisionStrategy]) =
+    oStrat.getOrElse(R.collisionStrategy(rank))
+
+  private def tryMakeNewRank(rank: R)(strat: CollisionStrategy) =
+    strat match {
+      case MoveUp =>
+        R.increment(rank)
+
+      case MoveDown =>
+        R.decrement(rank)
+    }
+
   /**
    * Recursive runs of this function are referred to as "the cascade". In a worst case scenario, the rank you want
    * may be occupied by another row already. Additionally, attempting to move this tenant away to another rank may
@@ -147,18 +159,11 @@ class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]
   private def makeSpaceForReally(ctx: Snapshot, updates: List[Update], rank: R, oStrat: Option[CollisionStrategy]): List[Update] Or OverflowError =
     Lexorank.rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
-        val strat = oStrat.getOrElse(R.collisionStrategy(rank))
-
-        // TODO encapsulate this algorithm
+        val strat =
+          getStrat(rank, oStrat)
 
         val newRankMaybe =
-          strat match {
-            case MoveUp =>
-              R.increment(rank)
-
-            case MoveDown =>
-              R.decrement(rank)
-          }
+          strat |> tryMakeNewRank(rank)
 
         // looks like a flatmap, but if we attempt to refactor, we will lose tail position
         newRankMaybe match {
