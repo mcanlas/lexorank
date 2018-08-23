@@ -136,6 +136,10 @@ class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]
   }
 
   /**
+   * Recursive runs of this function are referred to as "the cascade". In a worst case scenario, the rank you want
+   * may be occupied by another row already. Additionally, attempting to move this tenant away to another rank may
+   * "collide" into yet another tenant and the process repeats itself.
+   *
    * If you keep dynamically recomputing your collision strategy, it's possible that you will keep suggesting keys that
    * were already "taken".
    */
