@@ -26,26 +26,18 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
   private val xs =
     collection.mutable.Map.empty[K, Record[R]]
 
-  def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
+  def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row Or String] =
     getSnapshot
-      .map { s =>
+      .flatMap { s =>
         isInsertionPossible(pos)(s)
           .map(makeSpaceAndInsert(payload))
-      }
-      .flatMap {
-        case Left(err) =>
-
-          /**
-           * We reached this area because we determined in memory that finding a new rank key was not possible. The
-           * end of this IO should be the end of the transaction also (to relax the select for update locks).
-           */
-
-          // TODO swallowed error
-          AnnotatedIO { ??? }
-        case Right(io) =>
-          io
+          .fold(handleKeySpaceError, _.map(_.asRight[String]))
       }
 
+  /**
+   * We reached this area because we determined in memory that finding a new rank key was not possible. The
+   * end of this IO should be the end of the transaction also (to relax the select for update locks).
+   */
   private def handleKeySpaceError(err: OverflowError): AnnotatedIO[Row Or String] =
     AnnotatedIO {
       Left("could not make space for you, sorry bud")
