@@ -10,7 +10,9 @@ import mouse.all._
  * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
  * changing. Admin users can seed the database with at least one row to facilitate this.
  */
-class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
+class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]) {
+  private val RG = rankGenerator // just an alias
+
   type Row = (K, Record[R])
   type Snapshot = Map[K, R]
   type Update = RankUpdate[K, R]
@@ -89,7 +91,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
       .get(id)
       .fold[Row Or ChangeError](Left(IdDoesNotExistInStorage)) { _ =>
         // TODO nonsensical
-        Right(id -> Record("", R.anywhere))
+        Right(id -> Record("", RG.anywhere))
       }
 
   private def getSnapshot: AnnotatedIO[Snapshot] =
@@ -150,16 +152,16 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
 
     (afterRank, beforeRank) match {
       case (Some(min), Some(max)) =>
-        R.between(min, max)
+        RG.between(min, max)
 
       case (Some(min), None) =>
-        R.after(min)
+        RG.after(min)
 
       case (None, Some(max)) =>
-        R.before(max)
+        RG.before(max)
 
       case (None, None) =>
-        R.anywhere
+        RG.anywhere
     }
   }
 

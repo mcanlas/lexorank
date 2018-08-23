@@ -19,11 +19,6 @@ package com.htmlism.lexorank
  * @tparam A
  */
 trait Rankable[A] {
-  /**
-   * Using unsigned math. Should be "zero".
-   */
-  protected def min: A
-
   protected def max: A
 
   def increment(a: A): A Or MaxOverflow
@@ -36,33 +31,6 @@ trait Rankable[A] {
   def collisionStrategy(a: A): CollisionStrategy
 
   def eq(x: A, y: A): Boolean
-
-  /**
-   * Generates a value between `x` and `y`, `x` inclusive.
-   *
-   * `x` and `y` are unordered.
-   *
-   * `x` and `y` must not be equal.
-   *
-   * Even between two adjacent values, e.g. `3` and `4`, this function should continue to suggest one of them as a new
-   * candidate rank (probably `3`). Key space exhaustion will be detected when a wrap-around is caused during an
-   * increment/decrement cascade. Therefore, this should emit no errors.
-   */
-  def between(x: A, y: A): A
-
-  /**
-   * Generates a value between `min` and `max`.
-   *
-   * Derived.
-   */
-  def anywhere: A =
-    between(min, max)
-
-  def after(x: A): A =
-    between(x, max)
-
-  def before(x: A): A =
-    between(min, x)
 }
 
 /**
@@ -83,11 +51,8 @@ object Rankable {
   def apply[A : Rankable]: Rankable[A] =
     implicitly[Rankable[A]]
 
-  implicit def rankablePosInt(implicit RG: RangedGenerator[PosInt]): Rankable[PosInt] =
+  implicit val rankablePosInt: Rankable[PosInt] =
     new Rankable[PosInt] {
-      protected def min: PosInt =
-        PosInt(0)
-
       protected def max: PosInt =
         PosInt(Int.MaxValue)
 
@@ -111,9 +76,6 @@ object Rankable {
 
       def eq(x: PosInt, y: PosInt): Boolean =
         x.n == y.n
-
-      def between(x: PosInt, y: PosInt): PosInt =
-        RG.between(x, y)
 
       def collisionStrategy(a: PosInt): CollisionStrategy =
         if (a.n < max.n / 2)

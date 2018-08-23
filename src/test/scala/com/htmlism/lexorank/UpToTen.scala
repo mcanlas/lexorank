@@ -11,9 +11,6 @@ case class UpToTen(n: Int) {
 object UpToTen {
   implicit val rankableUpToTen: Rankable[UpToTen] =
     new Rankable[UpToTen] {
-      protected def min: UpToTen =
-        UpToTen(0)
-
       protected def max: UpToTen =
         UpToTen(10)
 
@@ -38,6 +35,24 @@ object UpToTen {
       def eq(x: UpToTen, y: UpToTen): Boolean =
         x.n == y.n
 
+      def collisionStrategy(a: UpToTen): CollisionStrategy =
+        if (a.n < max.n / 2)
+          MoveUp
+        else
+          MoveDown
+    }
+
+  implicit val rgUpToTen: RankGenerator[UpToTen] =
+    new RankGenerator[UpToTen] {
+      /**
+       * Using unsigned math. Should be "zero".
+       */
+      override protected def min: UpToTen =
+        UpToTen(0)
+
+      protected def max: UpToTen =
+        UpToTen(10)
+
       def between(x: UpToTen, y: UpToTen): UpToTen = {
         val min = Math.min(x.n, y.n)
         val max = Math.max(x.n, y.n)
@@ -46,11 +61,5 @@ object UpToTen {
           util.Random.nextInt(max - min) + min
         }
       }
-
-      def collisionStrategy(a: UpToTen): CollisionStrategy =
-        if (a.n < max.n / 2)
-          MoveUp
-        else
-          MoveDown
     }
 }

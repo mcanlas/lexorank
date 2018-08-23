@@ -7,7 +7,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `after`" in {
     forAll { key: PosInt =>
       val ret =
-        new Storage[PosInt, PosInt]
+        new Storage[PosInt, PosInt](rgPosInt)
           .changePosition(key, After(key))
           .value
           .unsafeRunSync()
@@ -19,7 +19,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `before`" in {
     forAll { key: PosInt =>
       val ret =
-        new Storage[PosInt, PosInt]
+        new Storage[PosInt, PosInt](rgPosInt)
           .changePosition(key, Before(key))
           .value
           .unsafeRunSync()
@@ -32,7 +32,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     forAll { (keyA: PosInt, keyB: PosInt) =>
       whenever (keyA != keyB) {
         val ret =
-          new Storage[PosInt, PosInt]
+          new Storage[PosInt, PosInt](rgPosInt)
             .changePosition(keyA, After(keyB))
             .value
             .unsafeRunSync()
@@ -58,7 +58,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   "insertion anywhere" should "work up to the key space limit" in {
     val limit = 10
 
-    val store = new Storage[PosInt, UpToTen]
+    val store = new Storage[PosInt, UpToTen](UpToTen.rgUpToTen)
 
     for (n <- 1 to limit) {
       println(n + ":")
