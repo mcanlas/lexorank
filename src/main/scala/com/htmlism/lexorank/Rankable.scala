@@ -3,6 +3,17 @@ package com.htmlism.lexorank
 /**
  * Behavior for manipulating ranks.
  *
+ * In this current design, this trait leaks to the caller how new ranks are assigned. If it is determined that existing
+ * ranks must be adjusted (when an initial collision is detected after a new rank is generated), a strategy must be
+ * chosen for the entire run of the adjustment cascade (which is implemented recursively).
+ *
+ * If the new rank is higher than the midpoint of the key space, the preferred strategy is to adjust everything
+ * downwards. This has a lower likelihood of key exhaustion for values below the new rank when compared to the smaller
+ * space above the rank. Conversely, when the new rank is lower than the midpoint, the strategy is to adjust upwards.
+ *
+ * It is possible that in infinitely precise spaces this idea of one strategy ahead of time may not apply. There could
+ * be multiple strategies to make space for keys in a more dynamic fashion.
+ *
  * Usually backed by `String` or `Int`.
  *
  * @tparam A
