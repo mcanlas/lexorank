@@ -114,7 +114,6 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
         val strat = oStrat.getOrElse(R.collisionStrategy(rank))
 
         // TODO encapsulate this algorithm
-        // TODO still non-deterministic errors here given key exhaustion
 
         val newRankMaybe =
           strat match {
