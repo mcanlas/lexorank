@@ -72,7 +72,8 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
     ctx
       .get(id)
       .fold[Row Or ChangeError](Left(IdDoesNotExistInStorage)) { _ =>
-        Right(???)
+        // TODO nonsensical
+        Right(id -> Record("", R.anywhere))
       }
 
   private def getSnapshot: AnnotatedIO[Snapshot] =
