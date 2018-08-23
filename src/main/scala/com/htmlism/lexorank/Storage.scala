@@ -42,6 +42,9 @@ class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]
   private val xs =
     collection.mutable.Map.empty[K, Record[R]]
 
+  /**
+   * A public method for attempting to insert an anonymous payload at some position.
+   */
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row Or String] =
     getSnapshot >>= attemptInsert(payload, pos)
 
