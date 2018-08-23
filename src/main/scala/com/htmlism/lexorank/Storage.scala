@@ -39,6 +39,11 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
       }
     }
 
+  private def handleKeySpaceError(err: OverflowError): AnnotatedIO[Row Or String] =
+    AnnotatedIO {
+      Left("could not make space for you, sorry bud")
+    }
+
   private def insertAtReally(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
     {
       val pk = pkSeed
