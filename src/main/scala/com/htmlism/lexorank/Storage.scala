@@ -176,6 +176,15 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
       this
     }
 
+  /**
+   * Not a part of the public API. For testing only.
+   */
+  def dump: Map[K, Record[R]] =
+    xs.toMap
+
+  /**
+   * Not a part of the public API. For testing only.
+   */
   def size: Int =
     xs.size
 

@@ -55,10 +55,10 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     }
   }
 
-  "insertion anywhere" should "work up to the key space limit" in {
+  "insertion anywhere given always say min" should "always work up to the key space limit" in {
     val limit = 10
 
-    val store = new Storage[PosInt, UpToTen](UpToTen.rgUpToTen)
+    val store = new Storage[PosInt, UpToTen](UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
       println(n + ":")
@@ -66,6 +66,14 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
         .insertAt("", Anywhere)
         .value
         .unsafeRunSync()
+
+      val sortedDump =
+        store.dump.values.map(_.rank.n).toList.sorted
+
+      val expected =
+        (1 to n).toList
+
+      sortedDump should contain theSameElementsInOrderAs expected
 
       println
       println

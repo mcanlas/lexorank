@@ -42,24 +42,18 @@ object UpToTen {
           MoveDown
     }
 
-  implicit val rgUpToTen: RankGenerator[UpToTen] =
+  implicit val AlwaysSayMin: RankGenerator[UpToTen] =
     new RankGenerator[UpToTen] {
       /**
        * Using unsigned math. Should be "zero".
        */
       override protected def min: UpToTen =
-        UpToTen(0)
+        UpToTen(1)
 
       protected def max: UpToTen =
         UpToTen(10)
 
-      def between(x: UpToTen, y: UpToTen): UpToTen = {
-        val min = Math.min(x.n, y.n)
-        val max = Math.max(x.n, y.n)
-
-        UpToTen {
-          util.Random.nextInt(max - min) + min
-        }
-      }
+      def between(x: UpToTen, y: UpToTen): UpToTen =
+        min
     }
 }

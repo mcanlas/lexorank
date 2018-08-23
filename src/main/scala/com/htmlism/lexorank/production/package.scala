@@ -4,7 +4,7 @@ package object production {
   implicit val rgPosInt: RankGenerator[PosInt] =
     new RankGenerator[PosInt] {
       protected def min: PosInt =
-        PosInt(0)
+        PosInt(1)
 
       protected def max: PosInt =
         PosInt(Int.MaxValue)
