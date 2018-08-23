@@ -160,6 +160,7 @@ class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]
               R.decrement(rank)
           }
 
+        // looks like a flatmap, but if we attempt to refactor, we will lose tail position
         newRankMaybe match {
           case Left(e) =>
             Left(e)
