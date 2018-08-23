@@ -11,11 +11,8 @@ trait Determinism {
           min + 1
         }
 
-      /**
-       * Using unsigned math. Should be "zero".
-       */
       protected def min: PosInt =
-        PosInt(Int.MinValue)
+        PosInt(1)
 
       protected def max: PosInt =
         PosInt(Int.MaxValue)

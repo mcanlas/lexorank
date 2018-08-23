@@ -8,7 +8,7 @@ package com.htmlism.lexorank
  */
 trait RankGenerator[A] {
   /**
-   * Using unsigned math. Should be "zero".
+   * Using unsigned math. Should be "one".
    */
   protected def min: A
 

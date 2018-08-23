@@ -44,9 +44,6 @@ object UpToTen {
 
   implicit val AlwaysSayMin: RankGenerator[UpToTen] =
     new RankGenerator[UpToTen] {
-      /**
-       * Using unsigned math. Should be "zero".
-       */
       override protected def min: UpToTen =
         UpToTen(1)
 
