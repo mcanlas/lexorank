@@ -34,6 +34,12 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
       }
       .flatMap {
         case Left(err) =>
+
+          /**
+           * We reached this area because we determined in memory that finding a new rank key was not possible. The
+           * end of this IO should be the end of the transaction also (to relax the select for update locks).
+           */
+
           // TODO swallowed error
           AnnotatedIO { ??? }
         case Right(io) =>
