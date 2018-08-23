@@ -9,10 +9,14 @@ import mouse.all._
  * We can consciously choose not to support the use case of inserting new records in storage that currently has no
  * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
  * changing. Admin users can seed the database with at least one row to facilitate this.
+ *
+ * @param RG A strategy for generating values in `R`
+ * @param K Evidence for key behaviors over `K`
+ * @param R Evidence for rank behaviors over `R`
+ * @tparam K The type for primary keys in this storage. Usually `Int`
+ * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
  */
-class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]) {
-  private val RG = rankGenerator // just an alias
-
+class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]) {
   type Row = (K, Record[R])
   type Snapshot = Map[K, R]
   type Update = RankUpdate[K, R]
