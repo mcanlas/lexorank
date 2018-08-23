@@ -47,7 +47,6 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
   private def insertAtReally(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
     {
       val rank = generateNewRank(ctx)(pos)
-      val rec = Record(payload, rank)
 
       val preReqUpdatesMaybe = rank |> makeSpaceFor(ctx)
 
@@ -60,6 +59,8 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
 
           val appendIO = {
             AnnotatedIO {
+              val rec = Record(payload, rank)
+
               val pk = pkSeed
               pkSeed = K.increment(pkSeed)
 
