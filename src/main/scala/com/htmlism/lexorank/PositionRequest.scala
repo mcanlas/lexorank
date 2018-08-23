@@ -41,13 +41,13 @@ object Between {
     if (A.eqv(min, max))
       None
     else
-      Some(new Between(min, max))
+      Some(new Between[A](min, max))
+}
 
-  private class Between[A](min: A, max: A) extends PositionRequest[A] {
-    def after: Option[A] =
-      Some(min)
+class Between[A] private(min: A, max: A) extends PositionRequest[A] {
+  def after: Option[A] =
+    Some(min)
 
-    def before: Option[A] =
-      Some(max)
-  }
+  def before: Option[A] =
+    Some(max)
 }
