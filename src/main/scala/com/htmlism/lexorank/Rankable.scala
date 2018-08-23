@@ -54,12 +54,18 @@ trait Rankable[A] {
     between(min, x)
 }
 
+/**
+ * This error happens when attempting to adjust existing rankable values and then ending up in a spot where they can
+ * no longer be adjusted. This does not necessarily mean that the key space is entirely exhausted, but it could be a
+ * sign that the key space is very crowded and only supports safe inserts/changes in specific places. Redistributing
+ * keys and/or using a larger key space can help alleviate this error.
+ */
 sealed trait OverflowError
 
-sealed trait MaxOverflow
+sealed trait MaxOverflow extends OverflowError
 case object MaxOverflow extends MaxOverflow
 
-sealed trait MinUnderflow
+sealed trait MinUnderflow extends OverflowError
 case object MinUnderflow extends MinUnderflow
 
 object Rankable {
