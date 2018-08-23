@@ -27,12 +27,12 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
     collection.mutable.Map.empty[K, Record[R]]
 
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row Or String] =
-    getSnapshot
-      .flatMap { s =>
-        isInsertionPossible(pos)(s)
-          .map(makeSpaceAndInsert(payload))
-          .fold(handleKeySpaceError, _.map(_.asRight[String]))
-      }
+    getSnapshot >>= attemptInsert(payload, pos)
+
+  private def attemptInsert(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
+    canWeCreateANewRank(pos)(ctx)
+      .map(makeSpaceAndInsert(payload))
+      .fold(handleKeySpaceError, _.map(_.asRight[String]))
 
   /**
    * We reached this area because we determined in memory that finding a new rank key was not possible. The
@@ -64,7 +64,7 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
     updatesIO *> appendIO
   }
 
-  private def isInsertionPossible(pos: PositionRequest[K])(ctx: Snapshot) =
+  private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
 
   private def applyUpdate(up: Update): AnnotatedIO[Unit] =
