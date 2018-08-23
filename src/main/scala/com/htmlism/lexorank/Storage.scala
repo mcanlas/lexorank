@@ -27,34 +27,32 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
     collection.mutable.Map.empty[K, Record[R]]
 
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
-    getSnapshot.flatMap { snap =>
-      val either = insertAtReally(payload, pos)(snap)
+    getSnapshot
+      .map(isInsertionPossible(pos))
+      .flatMap { e =>
+        val either = insertAtReally(payload, e)
 
-      either match {
-        case Left(err) =>
-          // TODO swallowed error
-          AnnotatedIO { ??? }
-        case Right(io) =>
-          io
+        either match {
+          case Left(err) =>
+            // TODO swallowed error
+            AnnotatedIO { ??? }
+          case Right(io) =>
+            io
+        }
       }
-    }
 
   private def handleKeySpaceError(err: OverflowError): AnnotatedIO[Row Or String] =
     AnnotatedIO {
       Left("could not make space for you, sorry bud")
     }
 
-  private def insertAtReally(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
+  private def insertAtReally(payload: String, e: Either[OverflowError, (R, List[Update])]) =
     {
-      val rank = generateNewRank(ctx)(pos)
-
-      val preReqUpdatesMaybe = rank |> makeSpaceFor(ctx)
-
-      preReqUpdatesMaybe match {
+      e match {
         case Left(err) =>
           Left(err)
 
-        case Right(preReqUpdates) =>
+        case Right((rank, preReqUpdates)) =>
           val updatesIO = preReqUpdates.traverse(applyUpdate)
 
           val appendIO = {
@@ -73,6 +71,9 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
           Right(updatesIO *> appendIO)
       }
     }
+
+  private def isInsertionPossible(pos: PositionRequest[K])(ctx: Snapshot) =
+    generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
 
   private def applyUpdate(up: Update): AnnotatedIO[Unit] =
     AnnotatedIO {
@@ -111,12 +112,13 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
   private def getSnapshot: AnnotatedIO[Snapshot] =
     AnnotatedIO(xs.map(r => r._1 -> r._2.rank).toMap)
 
-  private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] Or OverflowError =
+  private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
 
-  private def makeSpaceFor(ctx: Snapshot)(rank: R): List[Update] Or OverflowError = {
+  private def makeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
     makeSpaceForReally(ctx, Nil, rank, None)
+      .map(ups => rank -> ups)
   }
 
   /**
