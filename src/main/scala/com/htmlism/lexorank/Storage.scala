@@ -25,7 +25,17 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
     collection.mutable.Map.empty[K, Record[R]]
 
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
-    getSnapshot >>= insertAtReally(payload, pos)
+    getSnapshot.flatMap { snap =>
+      val either = insertAtReally(payload, pos)(snap)
+
+      either match {
+        case Left(err) =>
+          // TODO swallowed error
+          AnnotatedIO { ??? }
+        case Right(io) =>
+          io
+      }
+    }
 
   private def insertAtReally(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
     {
@@ -35,19 +45,25 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
       val rank = generateNewRank(ctx)(pos)
       val rec = Record(payload, rank)
 
-      val preReqUpdates = rank |> makeSpaceFor(ctx)
+      val preReqUpdatesMaybe = rank |> makeSpaceFor(ctx)
 
-      val updatesIO = preReqUpdates.traverse(applyUpdate)
+      preReqUpdatesMaybe match {
+        case Left(err) =>
+          Left(err)
 
-      val appendIO = {
-        AnnotatedIO {
-          withRow(pk, rec)
+        case Right(preReqUpdates) =>
+          val updatesIO = preReqUpdates.traverse(applyUpdate)
 
-          (pk, rec)
-        }
+          val appendIO = {
+            AnnotatedIO {
+              withRow(pk, rec)
+
+              (pk, rec)
+            }
+          }
+
+          Right(updatesIO *> appendIO)
       }
-
-      updatesIO *> appendIO
     }
 
   private def applyUpdate(up: Update): AnnotatedIO[Unit] =
@@ -79,10 +95,10 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
   private def getSnapshot: AnnotatedIO[Snapshot] =
     AnnotatedIO(xs.map(r => r._1 -> r._2.rank).toMap)
 
-  private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] =
+  private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot): List[Update] Or OverflowError =
     generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
 
-  private def makeSpaceFor(ctx: Snapshot)(rank: R): List[Update] = {
+  private def makeSpaceFor(ctx: Snapshot)(rank: R): List[Update] Or OverflowError = {
     println("\n\n\n\nentered this space")
     makeSpaceForReally(ctx, Nil, rank, None)
   }
@@ -92,7 +108,7 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
    * were already "taken".
    */
   @tailrec
-  private def makeSpaceForReally(ctx: Snapshot, updates: List[Update], rank: R, oStrat: Option[CollisionStrategy]): List[Update] =
+  private def makeSpaceForReally(ctx: Snapshot, updates: List[Update], rank: R, oStrat: Option[CollisionStrategy]): List[Update] Or OverflowError =
     Lexorank.rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat = oStrat.getOrElse(R.collisionStrategy(rank))
@@ -100,24 +116,30 @@ class Storage[K, R](implicit K: KeyLike[K], R: Rankable[R]) {
         // TODO encapsulate this algorithm
         // TODO still non-deterministic errors here given key exhaustion
 
-        val newRankForCollision =
+        val newRankMaybe =
           strat match {
             case MoveUp =>
-              R.increment(rank).toOption.get
+              R.increment(rank)
 
             case MoveDown =>
-              R.decrement(rank).toOption.get
+              R.decrement(rank)
           }
 
-        println(ctx)
-        println(s"via $strat $rank became $newRankForCollision")
+        newRankMaybe match {
+          case Left(e) =>
+            Left(e)
 
-        val butFirstDo = RankUpdate(k, rank, newRankForCollision)
+          case Right(newRankForCollision) =>
+            println(ctx)
+            println(s"via $strat $rank became $newRankForCollision")
 
-        makeSpaceForReally(ctx, butFirstDo :: updates, newRankForCollision, Some(strat))
+            val butFirstDo = RankUpdate(k, rank, newRankForCollision)
+
+            makeSpaceForReally(ctx, butFirstDo :: updates, newRankForCollision, Some(strat))
+        }
 
       case None =>
-        updates
+        Right(updates)
     }
 
   /**
