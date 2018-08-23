@@ -24,6 +24,8 @@ class Storage[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]
 
   /**
    * Easy access for relating unique keys to unique ranks. This is conceptually a bidirectional map.
+   *
+   * In SQL, this could be backed by a composite index over PK and ranks and enable index scans.
    */
   type Snapshot = Map[K, R]
 
