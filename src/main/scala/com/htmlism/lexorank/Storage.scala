@@ -28,17 +28,16 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
 
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row] =
     getSnapshot
-      .map(isInsertionPossible(pos))
-      .flatMap { e =>
-        val either = insertAtReally(payload, e)
-
-        either match {
-          case Left(err) =>
-            // TODO swallowed error
-            AnnotatedIO { ??? }
-          case Right(io) =>
-            io
-        }
+      .map { s =>
+        isInsertionPossible(pos)(s)
+          .map(makeSpaceAndInsert(payload))
+      }
+      .flatMap {
+        case Left(err) =>
+          // TODO swallowed error
+          AnnotatedIO { ??? }
+        case Right(io) =>
+          io
       }
 
   private def handleKeySpaceError(err: OverflowError): AnnotatedIO[Row Or String] =
@@ -46,31 +45,26 @@ class Storage[K, R](rankGenerator: RankGenerator[R])(implicit K: KeyLike[K], R: 
       Left("could not make space for you, sorry bud")
     }
 
-  private def insertAtReally(payload: String, e: Either[OverflowError, (R, List[Update])]) =
-    {
-      e match {
-        case Left(err) =>
-          Left(err)
+  private def makeSpaceAndInsert(payload: String)(e: (R, List[Update])) = {
+    val (rank, preReqUpdates) = e
 
-        case Right((rank, preReqUpdates)) =>
-          val updatesIO = preReqUpdates.traverse(applyUpdate)
+    val updatesIO = preReqUpdates.traverse(applyUpdate)
 
-          val appendIO = {
-            AnnotatedIO {
-              val rec = Record(payload, rank)
+    val appendIO = {
+      AnnotatedIO {
+        val rec = Record(payload, rank)
 
-              val pk = pkSeed
-              pkSeed = K.increment(pkSeed)
+        val pk = pkSeed
+        pkSeed = K.increment(pkSeed)
 
-              withRow(pk, rec)
+        withRow(pk, rec)
 
-              (pk, rec)
-            }
-          }
-
-          Right(updatesIO *> appendIO)
+        (pk, rec)
       }
     }
+
+    updatesIO *> appendIO
+  }
 
   private def isInsertionPossible(pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
