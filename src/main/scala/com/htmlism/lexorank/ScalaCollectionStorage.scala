@@ -22,4 +22,28 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K], R: 
         .map(r => r._1 -> r._2.rank)
         .toMap
     }
+
+  def applyUpdate(up: Update): F[Unit] =
+    F.delay {
+      xs(up.pk) = Record("", up.to)
+      assertUniqueRanks()
+    }
+
+  private def assertUniqueRanks(): Unit =
+    assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
+
+  /**
+   * Not a part of the public API. For testing only.
+   */
+  def dump: Map[K, Record[R]] =
+    xs.toMap
+
+  /**
+   * Not a part of the public API. For testing only.
+   */
+  def size: Int =
+    xs.size
+
+  override def toString: String =
+    (pkSeed :: xs.map(_.toString).toList).mkString("\n")
 }

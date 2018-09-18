@@ -35,4 +35,6 @@ trait Storage[F[_], K, R] {
    * operations are always per-organization and never enforce global ranking across all organizations).
    */
   def lockSnapshot: F[Snapshot]
+
+  def applyUpdate(up: Update): F[Unit]
 }
