@@ -6,6 +6,10 @@ import cats.effect._
 
 /**
  * @param K Evidence for key behaviors over `K`
+ *
+ * @tparam F An effect type
+ * @tparam K The type for primary keys in this storage. Usually `Int`
+ * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
  */
 class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends Storage[F, K, R] {
   private var pkSeed: K =
