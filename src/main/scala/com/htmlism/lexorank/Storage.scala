@@ -36,5 +36,7 @@ trait Storage[F[_], K, R] {
    */
   def lockSnapshot: F[Snapshot]
 
+  def makeSpaceAndInsert(payload: String)(e: (R, List[Update])): F[Row]
+
   def applyUpdate(up: Update): F[Unit]
 }

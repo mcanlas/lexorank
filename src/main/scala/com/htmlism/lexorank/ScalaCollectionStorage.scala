@@ -1,5 +1,6 @@
 package com.htmlism.lexorank
 
+import cats.implicits._
 import cats.effect._
 
 /**
@@ -23,11 +24,42 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K], R: 
         .toMap
     }
 
+  def makeSpaceAndInsert(payload: String)(e: (R, List[Update])): F[Row] = {
+    val (rank, preReqUpdates) = e
+
+    val updatesIO = preReqUpdates.traverse(applyUpdate)
+
+    val appendIO =
+      F.delay {
+        val rec = Record(payload, rank)
+
+        val pk = pkSeed
+        pkSeed = K.increment(pkSeed)
+
+        withRow(pk, rec)
+
+        (pk, rec)
+      }
+
+    updatesIO *> appendIO
+  }
+
   def applyUpdate(up: Update): F[Unit] =
     F.delay {
       xs(up.pk) = Record("", up.to)
       assertUniqueRanks()
     }
+
+  def withRow(id: K, record: Record[R]): this.type =
+  {
+    val row = (id, record)
+
+    xs += row
+
+    assertUniqueRanks()
+
+    this
+  }
 
   private def assertUniqueRanks(): Unit =
     assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
