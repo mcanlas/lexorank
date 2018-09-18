@@ -48,7 +48,7 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
    * A public method for attempting to insert an anonymous payload at some position.
    */
   def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row Or String] =
-    getSnapshot >>= attemptInsert(payload, pos)
+    lockSnapshot >>= attemptInsert(payload, pos)
 
   private def attemptInsert(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
     canWeCreateANewRank(pos)(ctx)
@@ -104,7 +104,7 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
     else if (req.before.contains(id))
       AnnotatedIO(Left(IdWasInBefore))
     else
-      getSnapshot
+      lockSnapshot
         .map(doIt(id))
 
   private def doIt(id: K)(ctx: Snapshot): Row Or ChangeError =
@@ -123,7 +123,7 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
    * an "organization" column that you also key by, this only needs to lock on one organization's ranks (if your
    * operations are always per-organization and never enforce global ranking across all organizations).
    */
-  private def getSnapshot: AnnotatedIO[Snapshot] =
+  private def lockSnapshot: AnnotatedIO[Snapshot] =
     AnnotatedIO(xs.map(r => r._1 -> r._2.rank).toMap)
 
   private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot) =
