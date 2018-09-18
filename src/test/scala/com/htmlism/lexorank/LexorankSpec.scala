@@ -83,6 +83,12 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     store.size shouldBe limit
   }
 
+  /**
+   * Given the way the current strategy is implemented (using the midpoint to inform the strategy once at the top),
+   * it is possible that there will be a crowded key space error even if the total key space isn't literally full.
+   * Only a smarter strategy would be able to take advantage of the empty keys that the midpoint strategy is leaving
+   * behind.
+   */
   "insertion anywhere" should "error given a crowded key space" ignore {
     forAll { store: Storage[PosInt, UpToTen] =>
       val previousSize = store.size
