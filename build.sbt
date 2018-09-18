@@ -6,6 +6,8 @@ libraryDependencies += "org.typelevel" %% "mouse" % "0.18"
 
 libraryDependencies += "org.typelevel" %% "cats-effect" % "1.0.0"
 
+libraryDependencies += "com.h2database" % "h2" % "1.4.197"
+
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 
 libraryDependencies += "org.scalacheck" %% "scalacheck" % "1.14.0" % "test"
