@@ -7,7 +7,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `after`" in {
     forAll { key: PosInt =>
       val ret =
-        new Storage[PosInt, PosInt](rgPosInt)
+        new LexorankFlow[PosInt, PosInt](rgPosInt)
           .changePosition(key, After(key))
           .value
           .unsafeRunSync()
@@ -19,7 +19,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `before`" in {
     forAll { key: PosInt =>
       val ret =
-        new Storage[PosInt, PosInt](rgPosInt)
+        new LexorankFlow[PosInt, PosInt](rgPosInt)
           .changePosition(key, Before(key))
           .value
           .unsafeRunSync()
@@ -32,7 +32,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     forAll { (keyA: PosInt, keyB: PosInt) =>
       whenever (keyA != keyB) {
         val ret =
-          new Storage[PosInt, PosInt](rgPosInt)
+          new LexorankFlow[PosInt, PosInt](rgPosInt)
             .changePosition(keyA, After(keyB))
             .value
             .unsafeRunSync()
@@ -43,7 +43,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   }
 
   "insertion anywhere" should "always be successful given an int-sized store" in {
-    forAll { store: Storage[PosInt, PosInt] =>
+    forAll { store: LexorankFlow[PosInt, PosInt] =>
       val previousSize = store.size
 
       store
@@ -58,7 +58,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   "insertion anywhere given always say min" should "always work up to the key space limit" in {
     val limit = 10
 
-    val store = new Storage[PosInt, UpToTen](UpToTen.AlwaysSayMin)
+    val store = new LexorankFlow[PosInt, UpToTen](UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
       println(n + ":")
@@ -90,7 +90,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
    * behind.
    */
   "insertion anywhere" should "error given a crowded key space" ignore {
-    forAll { store: Storage[PosInt, UpToTen] =>
+    forAll { store: LexorankFlow[PosInt, UpToTen] =>
       val previousSize = store.size
 
       store
