@@ -21,6 +21,12 @@ trait Storage[F[_], K, R] {
   type Snapshot = Map[K, R]
 
   /**
+   * This represents the desire to update a given row (identified by primary key) to some new rank. At runtime this
+   * would be backed by a SQL UPDATE statement.
+   */
+  type Update = RankUpdate[K, R]
+
+  /**
    * This, in your mind types, opens a connection to the database. It uses a "select for update" lock to hold to
    * hold on to the entire key space, since the worst case scenario is that many of them get updated.
    *
