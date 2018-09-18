@@ -48,7 +48,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
 
   private def attemptInsert(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
     canWeCreateANewRank(pos)(ctx)
-      .map(store.makeSpaceAndInsert(payload))
+      .map { case (xs, r) => store.makeSpace(xs) *> store.insertNewRecord(payload, r) }
       .fold(handleKeySpaceError, _.map(_.asRight[String]))
 
   /**
@@ -87,7 +87,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
   private def makeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
     makeSpaceForReally(ctx, Nil, rank, None)
-      .map(ups => rank -> ups)
+      .map(ups => ups -> rank)
   }
 
   private def getStrat(rank: R, oStrat: Option[CollisionStrategy]) =

@@ -28,25 +28,20 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) ext
         .toMap
     }
 
-  def makeSpaceAndInsert(payload: String)(e: (R, List[Update])): F[Row] = {
-    val (rank, preReqUpdates) = e
+  def makeSpace(xs: List[Update]): F[Unit] =
+    xs.traverse_(applyUpdate)
 
-    val updatesIO = preReqUpdates.traverse(applyUpdate)
+  def insertNewRecord(payload: String, rank: R): F[Row] =
+    F.delay {
+      val rec = Record(payload, rank)
 
-    val appendIO =
-      F.delay {
-        val rec = Record(payload, rank)
+      val pk = pkSeed
+      pkSeed = K.increment(pkSeed)
 
-        val pk = pkSeed
-        pkSeed = K.increment(pkSeed)
+      withRow(pk, rec)
 
-        withRow(pk, rec)
-
-        (pk, rec)
-      }
-
-    updatesIO *> appendIO
-  }
+      (pk, rec)
+    }
 
   def applyUpdate(up: Update): F[Unit] =
     F.delay {
