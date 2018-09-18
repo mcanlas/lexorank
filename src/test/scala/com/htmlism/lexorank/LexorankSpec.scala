@@ -1,5 +1,7 @@
 package com.htmlism.lexorank
 
+import cats.effect._
+
 import org.scalatest._
 import org.scalatest.prop._
 
@@ -7,9 +9,8 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `after`" in {
     forAll { key: PosInt =>
       val ret =
-        new Storage[PosInt, PosInt](rgPosInt)
+        new LexorankFlow[IO, PosInt, PosInt](new storage.ScalaCollectionStorage, rgPosInt)
           .changePosition(key, After(key))
-          .value
           .unsafeRunSync()
 
       ret shouldBe Left(IdWasInAfter)
@@ -19,9 +20,8 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `before`" in {
     forAll { key: PosInt =>
       val ret =
-        new Storage[PosInt, PosInt](rgPosInt)
+        new LexorankFlow[IO, PosInt, PosInt](new storage.ScalaCollectionStorage, rgPosInt)
           .changePosition(key, Before(key))
-          .value
           .unsafeRunSync()
 
       ret shouldBe Left(IdWasInBefore)
@@ -32,9 +32,8 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     forAll { (keyA: PosInt, keyB: PosInt) =>
       whenever (keyA != keyB) {
         val ret =
-          new Storage[PosInt, PosInt](rgPosInt)
+          new LexorankFlow[IO, PosInt, PosInt](new storage.ScalaCollectionStorage, rgPosInt)
             .changePosition(keyA, After(keyB))
-            .value
             .unsafeRunSync()
 
         ret shouldBe Left(IdDoesNotExistInStorage)
@@ -43,12 +42,12 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   }
 
   "insertion anywhere" should "always be successful given an int-sized store" in {
-    forAll { store: Storage[PosInt, PosInt] =>
+    forAll { store: storage.ScalaCollectionStorage[IO, PosInt, PosInt] =>
       val previousSize = store.size
+      val flow = new LexorankFlow(store, rgPosInt)
 
-      store
+      flow
         .insertAt("", Anywhere)
-        .value
         .unsafeRunSync()
 
       store.size shouldBe previousSize + 1
@@ -58,13 +57,13 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   "insertion anywhere given always say min" should "always work up to the key space limit" in {
     val limit = 10
 
-    val store = new Storage[PosInt, UpToTen](UpToTen.AlwaysSayMin)
+    val store = new storage.ScalaCollectionStorage[IO, PosInt, UpToTen]
+    val flow = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
       println(n + ":")
-      store
+      flow
         .insertAt("", Anywhere)
-        .value
         .unsafeRunSync()
 
       val sortedDump =
@@ -90,12 +89,12 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
    * behind.
    */
   "insertion anywhere" should "error given a crowded key space" ignore {
-    forAll { store: Storage[PosInt, UpToTen] =>
+    forAll { store: storage.ScalaCollectionStorage[IO, PosInt, UpToTen] =>
       val previousSize = store.size
+      val flow = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 
-      store
+      flow
         .insertAt("", Anywhere)
-        .value
         .unsafeRunSync()
 
       store.size shouldBe previousSize + 1
