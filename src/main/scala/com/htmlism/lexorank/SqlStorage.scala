@@ -1,3 +1,3 @@
 package com.htmlism.lexorank
 
-trait SqlStorage[K, R] extends Storage[K, R]
+trait SqlStorage[F[_], K, R] extends Storage[F, K, R]
