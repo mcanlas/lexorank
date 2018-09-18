@@ -141,6 +141,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
   /**
    * This will be the new rank, regardless. Collided onto values will be pushed out.
    */
+  // TODO it is possible that the key did not exist in the database
   private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R = {
     val afterRank  = req.after.flatMap(ctx.get)
     val beforeRank = req.before.flatMap(ctx.get)
