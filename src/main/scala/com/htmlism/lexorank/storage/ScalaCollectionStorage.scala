@@ -1,4 +1,5 @@
 package com.htmlism.lexorank
+package storage
 
 import cats.implicits._
 import cats.effect._
