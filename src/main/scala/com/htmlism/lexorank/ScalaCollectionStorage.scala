@@ -50,6 +50,9 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K], R: 
       assertUniqueRanks()
     }
 
+  /**
+   * Not a part of the public API. Used to pre-seed storage with data. For testing only.
+   */
   def withRow(id: K, record: Record[R]): this.type =
   {
     val row = (id, record)
