@@ -2,6 +2,7 @@ package com.htmlism.lexorank
 
 import scala.annotation.tailrec
 
+import cats.effect._
 import cats.implicits._
 import mouse.all._
 
@@ -11,12 +12,14 @@ import mouse.all._
  * changing. Admin users can seed the database with at least one row to facilitate this.
  *
  * @param RG A strategy for generating values in `R`
+ * @param F Evidence for IO
  * @param K Evidence for key behaviors over `K`
  * @param R Evidence for rank behaviors over `R`
+ * @tparam F An effect type
  * @tparam K The type for primary keys in this storage. Usually `Int`
  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
  */
-class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankable[R]) {
+class LexorankFlow[F[_], K, R](RG: RankGenerator[R])(implicit F: Sync[F], K: KeyLike[K], R: Rankable[R]) {
   /**
    * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
    */
@@ -47,7 +50,7 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
   /**
    * A public method for attempting to insert an anonymous payload at some position.
    */
-  def insertAt(payload: String, pos: PositionRequest[K]): AnnotatedIO[Row Or String] =
+  def insertAt(payload: String, pos: PositionRequest[K]): F[Row Or String] =
     lockSnapshot >>= attemptInsert(payload, pos)
 
   private def attemptInsert(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
@@ -59,8 +62,8 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
    * We reached this area because we determined in memory that finding a new rank key was not possible. The
    * end of this IO should be the end of the transaction also (to relax the select for update locks).
    */
-  private def handleKeySpaceError(err: OverflowError): AnnotatedIO[Row Or String] =
-    AnnotatedIO {
+  private def handleKeySpaceError(err: OverflowError): F[Row Or String] =
+    F.delay {
       Left("could not make space for you, sorry bud")
     }
 
@@ -70,7 +73,7 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
     val updatesIO = preReqUpdates.traverse(applyUpdate)
 
     val appendIO = {
-      AnnotatedIO {
+      F.delay {
         val rec = Record(payload, rank)
 
         val pk = pkSeed
@@ -88,8 +91,8 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
 
-  private def applyUpdate(up: Update): AnnotatedIO[Unit] =
-    AnnotatedIO {
+  private def applyUpdate(up: Update): F[Unit] =
+    F.delay {
       xs(up.pk) = Record("", up.to)
       assertUniqueRanks()
     }
@@ -97,12 +100,12 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
   /**
    * ID cannot be equal either of the provided `before` or `after`.
    */
-  def changePosition(id: K, req: PositionRequest[K]): AnnotatedIO[Row Or ChangeError] =
+  def changePosition(id: K, req: PositionRequest[K]): F[Row Or ChangeError] =
     if (req.after.contains(id))
-      AnnotatedIO(Left(IdWasInAfter))
+      F.delay(Left(IdWasInAfter))
 
     else if (req.before.contains(id))
-      AnnotatedIO(Left(IdWasInBefore))
+      F.delay(Left(IdWasInBefore))
     else
       lockSnapshot
         .map(doIt(id))
@@ -123,8 +126,8 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
    * an "organization" column that you also key by, this only needs to lock on one organization's ranks (if your
    * operations are always per-organization and never enforce global ranking across all organizations).
    */
-  private def lockSnapshot: AnnotatedIO[Snapshot] =
-    AnnotatedIO(xs.map(r => r._1 -> r._2.rank).toMap)
+  private def lockSnapshot: F[Snapshot] =
+    F.delay(xs.map(r => r._1 -> r._2.rank).toMap)
 
   private def makeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
