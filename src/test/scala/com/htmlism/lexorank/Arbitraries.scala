@@ -25,16 +25,14 @@ trait Arbitraries {
         .map(Bimap.fromList)
     }
 
-  implicit def storage[K : Arbitrary : KeyLike, V : Arbitrary : Rankable](implicit RG: RankGenerator[V]): Arbitrary[LexorankFlow[IO, K, V]] =
+  implicit def storage[K : Arbitrary : KeyLike, V : Arbitrary : Rankable]: Arbitrary[ScalaCollectionStorage[IO, K, V]] =
     Arbitrary {
       arbitrary[Bimap[K, V]]
         .map(xs => buildStorage(xs)) // xs because scala?
     }
 
-  private def buildStorage[K : KeyLike, V : Rankable](xs: Bimap[K, V])(implicit RG: RankGenerator[V]): LexorankFlow[IO, K, V] =
-    {
-      xs.xs.foldLeft{
-        new ScalaCollectionStorage[IO, K, V]
-      } ((st, kv) => st.withRow(kv._1, Record("", kv._2)))
-    } |> (new LexorankFlow(_, RG))
+  private def buildStorage[K : KeyLike, V : Rankable](xs: Bimap[K, V]): ScalaCollectionStorage[IO, K, V] =
+    xs.xs.foldLeft{
+      new ScalaCollectionStorage[IO, K, V]
+    } ((st, kv) => st.withRow(kv._1, Record("", kv._2)))
 }

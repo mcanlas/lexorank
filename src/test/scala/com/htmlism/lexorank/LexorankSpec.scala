@@ -42,10 +42,11 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   }
 
   "insertion anywhere" should "always be successful given an int-sized store" in {
-    forAll { store: LexorankFlow[IO, PosInt, PosInt] =>
+    forAll { store: ScalaCollectionStorage[IO, PosInt, PosInt] =>
       val previousSize = store.size
+      val flow = new LexorankFlow(store, rgPosInt)
 
-      store
+      flow
         .insertAt("", Anywhere)
         .unsafeRunSync()
 
@@ -56,11 +57,12 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   "insertion anywhere given always say min" should "always work up to the key space limit" in {
     val limit = 10
 
-    val store = new LexorankFlow[IO, PosInt, UpToTen](new ScalaCollectionStorage, UpToTen.AlwaysSayMin)
+    val store = new ScalaCollectionStorage[IO, PosInt, UpToTen]
+    val flow = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
       println(n + ":")
-      store
+      flow
         .insertAt("", Anywhere)
         .unsafeRunSync()
 
@@ -87,10 +89,11 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
    * behind.
    */
   "insertion anywhere" should "error given a crowded key space" ignore {
-    forAll { store: LexorankFlow[IO, PosInt, UpToTen] =>
+    forAll { store: ScalaCollectionStorage[IO, PosInt, UpToTen] =>
       val previousSize = store.size
+      val flow = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 
-      store
+      flow
         .insertAt("", Anywhere)
         .unsafeRunSync()
 

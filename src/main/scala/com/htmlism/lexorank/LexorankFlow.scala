@@ -41,24 +41,15 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
    */
   type Update = RankUpdate[K, R]
 
-  private var pkSeed: K =
-    K.first
-
-  /**
-   * This is bi-directional map between PKs and ranks.
-   */
-  private val xs =
-    collection.mutable.Map.empty[K, Record[R]]
-
   /**
    * A public method for attempting to insert an anonymous payload at some position.
    */
   def insertAt(payload: String, pos: PositionRequest[K]): F[Row Or String] =
-    lockSnapshot >>= attemptInsert(payload, pos)
+    store.lockSnapshot >>= attemptInsert(payload, pos)
 
   private def attemptInsert(payload: String, pos: PositionRequest[K])(ctx: Snapshot) =
     canWeCreateANewRank(pos)(ctx)
-      .map(makeSpaceAndInsert(payload))
+      .map(store.makeSpaceAndInsert(payload))
       .fold(handleKeySpaceError, _.map(_.asRight[String]))
 
   /**
@@ -70,35 +61,8 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
       Left("could not make space for you, sorry bud")
     }
 
-  private def makeSpaceAndInsert(payload: String)(e: (R, List[Update])) = {
-    val (rank, preReqUpdates) = e
-
-    val updatesIO = preReqUpdates.traverse(applyUpdate)
-
-    val appendIO = {
-      F.delay {
-        val rec = Record(payload, rank)
-
-        val pk = pkSeed
-        pkSeed = K.increment(pkSeed)
-
-        withRow(pk, rec)
-
-        (pk, rec)
-      }
-    }
-
-    updatesIO *> appendIO
-  }
-
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
-
-  private def applyUpdate(up: Update): F[Unit] =
-    F.delay {
-      xs(up.pk) = Record("", up.to)
-      assertUniqueRanks()
-    }
 
   /**
    * ID cannot be equal either of the provided `before` or `after`.
@@ -110,7 +74,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
     else if (req.before.contains(id))
       F.delay(Left(IdWasInBefore))
     else
-      lockSnapshot
+      store.lockSnapshot
         .map(doIt(id))
 
   private def doIt(id: K)(ctx: Snapshot): Row Or ChangeError =
@@ -120,17 +84,6 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
         // TODO nonsensical
         Right(id -> Record("", RG.anywhere))
       }
-
-  /**
-   * This, in your mind types, opens a connection to the database. It uses a "select for update" lock to hold to
-   * hold on to the entire key space, since the worst case scenario is that many of them get updated.
-   *
-   * Remember that your key space may also be a composite of two columns. If your rank column is `Int` and there is
-   * an "organization" column that you also key by, this only needs to lock on one organization's ranks (if your
-   * operations are always per-organization and never enforce global ranking across all organizations).
-   */
-  private def lockSnapshot: F[Snapshot] =
-    F.delay(xs.map(r => r._1 -> r._2.rank).toMap)
 
   private def makeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
@@ -207,35 +160,6 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
         RG.anywhere
     }
   }
-
-  def withRow(id: K, record: Record[R]): this.type =
-    {
-      val row = (id, record)
-
-      xs += row
-
-      assertUniqueRanks()
-
-      this
-    }
-
-  private def assertUniqueRanks(): Unit =
-    assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
-
-  /**
-   * Not a part of the public API. For testing only.
-   */
-  def dump: Map[K, Record[R]] =
-    xs.toMap
-
-  /**
-   * Not a part of the public API. For testing only.
-   */
-  def size: Int =
-    xs.size
-
-  override def toString: String =
-    (pkSeed :: xs.map(_.toString).toList).mkString("\n")
 }
 
 object Lexorank {
