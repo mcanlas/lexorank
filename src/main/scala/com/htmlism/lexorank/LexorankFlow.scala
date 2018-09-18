@@ -2,7 +2,7 @@ package com.htmlism.lexorank
 
 import scala.annotation.tailrec
 
-import cats.effect._
+import cats._
 import cats.implicits._
 import mouse.all._
 
@@ -22,7 +22,7 @@ import mouse.all._
  * @tparam K The type for primary keys in this storage. Usually `Int`
  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
  */
-class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(implicit F: Sync[F], K: KeyLike[K], R: Rankable[R]) {
+class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(implicit F: Monad[F], K: KeyLike[K], R: Rankable[R]) {
   /**
    * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
    */
@@ -57,7 +57,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
    * end of this IO should be the end of the transaction also (to relax the select for update locks).
    */
   private def handleKeySpaceError(err: OverflowError): F[Row Or String] =
-    F.delay {
+    F.pure {
       Left("could not make space for you, sorry bud")
     }
 
@@ -69,10 +69,10 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
    */
   def changePosition(id: K, req: PositionRequest[K]): F[Row Or ChangeError] =
     if (req.after.contains(id))
-      F.delay(Left(IdWasInAfter))
+      F.pure(Left(IdWasInAfter))
 
     else if (req.before.contains(id))
-      F.delay(Left(IdWasInBefore))
+      F.pure(Left(IdWasInBefore))
     else
       store.lockSnapshot
         .map(doIt(id))
