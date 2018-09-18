@@ -5,9 +5,8 @@ import cats.effect._
 
 /**
  * @param K Evidence for key behaviors over `K`
- * @param R Evidence for rank behaviors over `R`
  */
-class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K], R: Rankable[R]) extends Storage[F, K, R] {
+class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends Storage[F, K, R] {
   private var pkSeed: K =
     K.first
 

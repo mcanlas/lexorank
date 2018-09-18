@@ -15,14 +15,13 @@ import mouse.all._
  * @param RG A strategy for generating values in `R`
  *
  * @param F Evidence for IO
- * @param K Evidence for key behaviors over `K`
  * @param R Evidence for rank behaviors over `R`
  *
  * @tparam F An effect type
  * @tparam K The type for primary keys in this storage. Usually `Int`
  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
  */
-class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(implicit F: Monad[F], K: KeyLike[K], R: Rankable[R]) {
+class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(implicit F: Monad[F], R: Rankable[R]) {
   /**
    * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
    */
