@@ -126,9 +126,6 @@ class LexorankFlow[K, R](RG: RankGenerator[R])(implicit K: KeyLike[K], R: Rankab
   private def lockSnapshot: AnnotatedIO[Snapshot] =
     AnnotatedIO(xs.map(r => r._1 -> r._2.rank).toMap)
 
-  private def generateUpdateSequence(id: K, pos: PositionRequest[K])(ctx: Snapshot) =
-    generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
-
   private def makeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
     makeSpaceForReally(ctx, Nil, rank, None)
