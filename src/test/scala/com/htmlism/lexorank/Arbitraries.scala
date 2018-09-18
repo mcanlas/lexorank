@@ -1,6 +1,7 @@
 package com.htmlism.lexorank
 
 import cats.effect._
+import mouse.all._
 
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
@@ -31,5 +32,9 @@ trait Arbitraries {
     }
 
   private def buildStorage[K : KeyLike, V : Rankable](xs: Bimap[K, V])(implicit RG: RankGenerator[V]): LexorankFlow[IO, K, V] =
-    xs.xs.foldLeft(new LexorankFlow[IO, K, V](RG))((st, kv) => st.withRow(kv._1, Record("", kv._2)))
+    {
+      xs.xs.foldLeft{
+        new ScalaCollectionStorage[IO, K, V]
+      } ((st, kv) => st.withRow(kv._1, Record("", kv._2)))
+    } |> (new LexorankFlow(_, RG))
 }

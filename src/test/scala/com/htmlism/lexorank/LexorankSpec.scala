@@ -9,7 +9,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `after`" in {
     forAll { key: PosInt =>
       val ret =
-        new LexorankFlow[IO, PosInt, PosInt](rgPosInt)
+        new LexorankFlow[IO, PosInt, PosInt](new ScalaCollectionStorage, rgPosInt)
           .changePosition(key, After(key))
           .unsafeRunSync()
 
@@ -20,7 +20,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   it should "domain error if pk exists in `before`" in {
     forAll { key: PosInt =>
       val ret =
-        new LexorankFlow[IO, PosInt, PosInt](rgPosInt)
+        new LexorankFlow[IO, PosInt, PosInt](new ScalaCollectionStorage, rgPosInt)
           .changePosition(key, Before(key))
           .unsafeRunSync()
 
@@ -32,7 +32,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
     forAll { (keyA: PosInt, keyB: PosInt) =>
       whenever (keyA != keyB) {
         val ret =
-          new LexorankFlow[IO, PosInt, PosInt](rgPosInt)
+          new LexorankFlow[IO, PosInt, PosInt](new ScalaCollectionStorage, rgPosInt)
             .changePosition(keyA, After(keyB))
             .unsafeRunSync()
 
@@ -56,7 +56,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   "insertion anywhere given always say min" should "always work up to the key space limit" in {
     val limit = 10
 
-    val store = new LexorankFlow[IO, PosInt, UpToTen](UpToTen.AlwaysSayMin)
+    val store = new LexorankFlow[IO, PosInt, UpToTen](new ScalaCollectionStorage, UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
       println(n + ":")
