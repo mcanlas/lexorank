@@ -103,4 +103,15 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
 
   // TODO for any given state, property test that INSERT and CHANGE requests retain their properties
   // i.e. previous sort was maintained and requested sort is also satisified
+
+  "" should "" in {
+    forAll { pair: StorageAndRequest[IO, PosInt, PosInt, Before] =>
+      val StorageAndRequest(a, b) = pair
+
+      println(a.dump)
+      println(b)
+
+      1 shouldBe 1
+    }
+  }
 }
