@@ -21,6 +21,7 @@ import mouse.all._
  * @tparam K The type for primary keys in this storage. Usually `Int`
  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
  */
+// TODO differentiate between outer effect type F and database IO type G
 class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(implicit F: Monad[F], R: Rankable[R]) {
   /**
    * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
