@@ -32,7 +32,9 @@ trait Arbitraries {
     }
 
   private def buildStorage[K : KeyLike, V : Rankable](xs: Bimap[K, V]): storage.ScalaCollectionStorage[IO, K, V] =
-    xs.xs.foldLeft{
-      new storage.ScalaCollectionStorage[IO, K, V]
-    } ((st, kv) => st.withRow(kv._1, Record("", kv._2)))
+    storage.ScalaCollectionStorage.from {
+      xs
+        .xs
+        .map { case (k, v) => k -> Record("", v) }
+    }
 }
