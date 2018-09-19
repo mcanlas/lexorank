@@ -100,4 +100,7 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
       store.size shouldBe previousSize + 1
     }
   }
+
+  // TODO for any given state, property test that INSERT and CHANGE requests retain their properties
+  // i.e. previous sort was maintained and requested sort is also satisified
 }
