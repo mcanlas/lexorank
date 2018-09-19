@@ -59,7 +59,8 @@ class ScalaCollectionStorage[F[_], K, R](xs: collection.mutable.Map[K, Record[R]
       val pk = pkSeed
       pkSeed = K.increment(pkSeed)
 
-      withRow(pk, rec)
+      xs += (pk -> rec)
+      assertUniqueRanks()
 
       (pk, rec)
     }
@@ -69,20 +70,6 @@ class ScalaCollectionStorage[F[_], K, R](xs: collection.mutable.Map[K, Record[R]
       xs(up.pk) = Record("", up.to)
       assertUniqueRanks()
     }
-
-  /**
-   * Not a part of the public API. Used to pre-seed storage with data. For testing only.
-   */
-  def withRow(id: K, record: Record[R]): this.type =
-  {
-    val row = (id, record)
-
-    xs += row
-
-    assertUniqueRanks()
-
-    this
-  }
 
   private def assertUniqueRanks(): Unit =
     assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
