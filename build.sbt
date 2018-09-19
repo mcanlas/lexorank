@@ -1,5 +1,8 @@
 lazy val doobieVersion = "0.5.3"
 
+scalaVersion := "2.12.6"
+crossScalaVersions := Seq("2.11.12", "2.12.6")
+
 initialCommands in console := "import com.htmlism.lexorank._"
 
 libraryDependencies += "org.typelevel" %% "cats-core"   % "1.4.0"
