@@ -126,8 +126,7 @@ class LexorankSpec
         } yield {
           inside(or) {
             case Right((pk, rec)) =>
-              xs2.length shouldBe xs1.length + 1
-              (xs2 diff List(pk)) should contain theSameElementsInOrderAs xs1
+              (xs2 - pk).toList should contain theSameElementsInOrderAs xs1.toList
           }
         }
 
@@ -151,8 +150,7 @@ class LexorankSpec
         } yield {
           inside(or) {
             case Right((pk, rec)) =>
-              xs2.length shouldBe xs1.length + 1
-              (xs2 diff List(pk)) should contain theSameElementsInOrderAs xs1
+              (xs2 - pk).toList should contain theSameElementsInOrderAs xs1.toList
           }
         }
 
