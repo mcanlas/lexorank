@@ -1,11 +1,18 @@
 package com.htmlism.lexorank
 
+import cats.implicits._
 import cats.effect._
 
 import org.scalatest._
 import org.scalatest.prop._
 
-class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyChecks with Arbitraries with Determinism {
+class LexorankSpec
+  extends FlatSpec
+    with Matchers
+    with Inside
+    with GeneratorDrivenPropertyChecks
+    with Arbitraries
+    with Determinism {
   it should "domain error if pk exists in `after`" in {
     forAll { key: PosInt =>
       val ret =
@@ -104,14 +111,53 @@ class LexorankSpec extends FlatSpec with Matchers with GeneratorDrivenPropertyCh
   // TODO for any given state, property test that INSERT and CHANGE requests retain their properties
   // i.e. previous sort was maintained and requested sort is also satisified
 
-  "" should "" in {
+  // TODO before behavior needs to be tested
+  "a valid Insert Before request" should "increment size and retain order" in {
     forAll { pair: StorageAndRequest[IO, PosInt, PosInt, Before] =>
       val StorageAndRequest(a, b) = pair
 
-      println(a.dump)
-      println(b)
+      val flow = new LexorankFlow[IO, PosInt, PosInt](a, rgPosInt)
 
-      1 shouldBe 1
+      val io =
+        for {
+          xs1 <- flow.getRows
+           or <- flow.insertAt("", b)
+          xs2 <- flow.getRows
+        } yield {
+          inside(or) {
+            case Right((pk, rec)) =>
+              xs2.length shouldBe xs1.length + 1
+              (xs2 diff List(pk)) should contain theSameElementsInOrderAs xs1
+          }
+        }
+
+      io
+        .unsafeRunSync()
+    }
+  }
+
+  // TODO after behavior needs to be tested
+  "a valid Insert After request" should "increment size and retain order" in {
+    forAll { pair: StorageAndRequest[IO, PosInt, PosInt, After] =>
+      val StorageAndRequest(a, b) = pair
+
+      val flow = new LexorankFlow[IO, PosInt, PosInt](a, rgPosInt)
+
+      val io =
+        for {
+          xs1 <- flow.getRows
+          or <- flow.insertAt("", b)
+          xs2 <- flow.getRows
+        } yield {
+          inside(or) {
+            case Right((pk, rec)) =>
+              xs2.length shouldBe xs1.length + 1
+              (xs2 diff List(pk)) should contain theSameElementsInOrderAs xs1
+          }
+        }
+
+      io
+        .unsafeRunSync()
     }
   }
 }

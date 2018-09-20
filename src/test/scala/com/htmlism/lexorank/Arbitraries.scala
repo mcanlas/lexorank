@@ -54,6 +54,16 @@ trait Arbitraries {
         StorageAndRequest(s, Before(k))
       }
     }
+
+  implicit def arbInsertAfter[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndRequest[F, K, R, After]] =
+    Arbitrary {
+      for {
+        s <- genNonEmptyStorage[F, K, R]
+        k <- Gen.oneOf(s.dump.keys.toVector)
+      } yield {
+        StorageAndRequest(s, After(k))
+      }
+    }
 //
 //  protected def genInsertAfter[F, K, R](store: Storage[F, K, R]): Arbitrary[FlowAndRequest[F, K, R, After]] =
 //

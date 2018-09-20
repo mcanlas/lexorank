@@ -27,6 +27,12 @@ trait Storage[F[_], K, R] {
   type Update = RankUpdate[K, R]
 
   /**
+   * Similar to `lockSnapshot` but does not lock the rows. Used as the initial query for a UI or to check state in
+   * tests.
+   */
+  def getSnapshot: F[Snapshot]
+
+  /**
    * This, in your mind types, opens a connection to the database. It uses a "select for update" lock to hold to
    * hold on to the entire key space, since the worst case scenario is that many of them get updated.
    *
