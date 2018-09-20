@@ -64,15 +64,4 @@ trait Arbitraries {
         StorageAndRequest(s, After(k))
       }
     }
-//
-//  protected def genInsertAfter[F, K, R](store: Storage[F, K, R]): Arbitrary[FlowAndRequest[F, K, R, After]] =
-//
-//
-//  protected def genInsertBetween[F, K, R](store: Storage[F, K, R]): Arbitrary[FlowAndRequest[F, K, R, Between]] =
-//
-//
-//  protected def genChangeReq
-//
-//  implicit def arbFlowAndRequest[F[_], K, R, PR[_]]: Arbitrary[FlowAndRequest[F, K, R, PR]] =
-//    ???
 }
