@@ -37,4 +37,31 @@ trait Arbitraries {
         .xs
         .map { case (k, v) => k -> Record("", v) }
     }
+
+  private def genNonEmptyStorage[F[_] : Sync, K : Arbitrary : KeyLike, V : Arbitrary]: Gen[storage.ScalaCollectionStorage[F, K, V]] =
+    Gen
+      .nonEmptyListOf(arbitrary[(K, V)])
+      .map(Bimap.fromList)
+      .map(_.xs.map { case (k, v) => k -> Record("", v) })
+      .map(storage.ScalaCollectionStorage.from[F, K, V])
+
+  implicit def arbInsertBefore[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndRequest[F, K, R, Before]] =
+    Arbitrary {
+      for {
+        s <- genNonEmptyStorage[F, K, R]
+        k <- Gen.oneOf(s.dump.keys.toVector)
+      } yield {
+        StorageAndRequest(s, Before(k))
+      }
+    }
+
+  implicit def arbInsertAfter[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndRequest[F, K, R, After]] =
+    Arbitrary {
+      for {
+        s <- genNonEmptyStorage[F, K, R]
+        k <- Gen.oneOf(s.dump.keys.toVector)
+      } yield {
+        StorageAndRequest(s, After(k))
+      }
+    }
 }

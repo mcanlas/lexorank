@@ -42,6 +42,13 @@ class ScalaCollectionStorage[F[_], K, R](xs: collection.mutable.Map[K, Record[R]
   private var pkSeed: K =
     K.first
 
+  def getSnapshot: F[Snapshot] =
+    F.delay {
+      xs
+        .map(r => r._1 -> r._2.rank)
+        .toMap
+    }
+
   def lockSnapshot: F[Snapshot] =
     F.delay {
       xs

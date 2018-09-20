@@ -9,6 +9,9 @@ case class UpToTen(n: Int) {
 }
 
 object UpToTen {
+  implicit val upToTenOrdering: Ordering[UpToTen] =
+    Ordering.by(_.n)
+
   implicit val rankableUpToTen: Rankable[UpToTen] =
     new Rankable[UpToTen] {
       protected def max: UpToTen =
