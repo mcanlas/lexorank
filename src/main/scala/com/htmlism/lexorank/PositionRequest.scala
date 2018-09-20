@@ -20,28 +20,28 @@ case object Anywhere extends PositionRequest[Nothing] {
     None
 }
 
-case class Before[A](x: A) extends PositionRequest[A] {
+case class Before[A](k: A) extends PositionRequest[A] {
   def after: Option[A] =
     None
 
   def before: Option[A] =
-    Some(x)
+    Some(k)
 }
 
-case class After[A](x: A) extends PositionRequest[A] {
+case class After[A](k: A) extends PositionRequest[A] {
   def after: Option[A] =
-    Some(x)
+    Some(k)
 
   def before: Option[A] =
     None
 }
 
 object Between {
-  def apply[A](min: A, max: A)(implicit A: Eq[A]): Option[Between[A]] =
-    if (A.eqv(min, max))
+  def apply[A](a: A, b: A)(implicit A: Eq[A]): Option[Between[A]] =
+    if (A.eqv(a, b))
       None
     else
-      Some(new Between[A](min, max))
+      Some(new Between[A](a, b))
 }
 
 class Between[A] private(min: A, max: A) extends PositionRequest[A] {
