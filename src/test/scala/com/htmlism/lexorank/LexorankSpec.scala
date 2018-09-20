@@ -111,22 +111,24 @@ class LexorankSpec
   // TODO for any given state, property test that INSERT and CHANGE requests retain their properties
   // i.e. previous sort was maintained and requested sort is also satisified
 
-  // TODO before behavior needs to be tested
   "a valid Insert Before request" should "increment size and retain order" in {
     forAll { pair: StorageAndRequest[IO, PosInt, PosInt, Before] =>
-      val StorageAndRequest(a, b) = pair
+      val StorageAndRequest(store, req) = pair
 
-      val flow = new LexorankFlow[IO, PosInt, PosInt](a, rgPosInt)
+      val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
       val io =
         for {
           xs1 <- flow.getRows
-           or <- flow.insertAt("", b)
+           or <- flow.insertAt("", req)
           xs2 <- flow.getRows
         } yield {
           inside(or) {
-            case Right((pk, rec)) =>
-              (xs2 - pk).toList should contain theSameElementsInOrderAs xs1.toList
+            case Right((newPk, rec)) =>
+              (xs2 - newPk).toList should contain theSameElementsInOrderAs xs1.toList
+
+              val aftList = xs2.toList
+              aftList.indexOf(newPk) < aftList.indexOf(req.k)
           }
         }
 
@@ -135,22 +137,24 @@ class LexorankSpec
     }
   }
 
-  // TODO after behavior needs to be tested
   "a valid Insert After request" should "increment size and retain order" in {
     forAll { pair: StorageAndRequest[IO, PosInt, PosInt, After] =>
-      val StorageAndRequest(a, b) = pair
+      val StorageAndRequest(store, req) = pair
 
-      val flow = new LexorankFlow[IO, PosInt, PosInt](a, rgPosInt)
+      val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
       val io =
         for {
           xs1 <- flow.getRows
-          or <- flow.insertAt("", b)
+          or <- flow.insertAt("", req)
           xs2 <- flow.getRows
         } yield {
           inside(or) {
-            case Right((pk, rec)) =>
-              (xs2 - pk).toList should contain theSameElementsInOrderAs xs1.toList
+            case Right((newPk, rec)) =>
+              (xs2 - newPk).toList should contain theSameElementsInOrderAs xs1.toList
+
+              val aftList = xs2.toList
+              aftList.indexOf(newPk) > aftList.indexOf(req.k)
           }
         }
 
