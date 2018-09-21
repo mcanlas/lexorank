@@ -112,8 +112,8 @@ class LexorankSpec
   // i.e. previous sort was maintained and requested sort is also satisified
 
   "a valid Insert Before request" should "increment size; reflect requested order; retain old order" in {
-    forAll { pair: StorageAndRequest[IO, PosInt, PosInt, Before] =>
-      val StorageAndRequest(store, req) = pair
+    forAll { pair: StorageAndInsertRequest[IO, PosInt, PosInt, Before] =>
+      val StorageAndInsertRequest(store, req) = pair
 
       val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
@@ -137,8 +137,8 @@ class LexorankSpec
   }
 
   "a valid Insert After request" should "increment size; reflect requested order; retain old order" in {
-    forAll { pair: StorageAndRequest[IO, PosInt, PosInt, After] =>
-      val StorageAndRequest(store, req) = pair
+    forAll { pair: StorageAndInsertRequest[IO, PosInt, PosInt, After] =>
+      val StorageAndInsertRequest(store, req) = pair
 
       val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 

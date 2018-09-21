@@ -1,5 +1,6 @@
 package com.htmlism.lexorank
 
+import cats._
 import cats.effect._
 import mouse.all._
 
@@ -29,23 +30,30 @@ trait Arbitraries {
       .nonEmptyMap(arbitrary[(V, String)])
       .map(storage.ScalaCollectionStorage.from[F, K, V])
 
-  implicit def arbInsertBefore[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndRequest[F, K, R, Before]] =
+  implicit def arbInsertBefore[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndInsertRequest[F, K, R, Before]] =
     Arbitrary {
       for {
         s <- genNonEmptyStorage[F, K, R]
         k <- Gen.oneOf(s.dump.keys.toVector)
       } yield {
-        StorageAndRequest(s, Before(k))
+        StorageAndInsertRequest(s, Before(k))
       }
     }
 
-  implicit def arbInsertAfter[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndRequest[F, K, R, After]] =
+  implicit def arbBetween[F[_] : Sync, K : KeyLike : Arbitrary : Eq, R : Arbitrary]: Arbitrary[StorageAndInsertRequest[F, K, R, Between]] =
     Arbitrary {
+      val storageWithAtLeastTwo =
+        Gen
+          .nonEmptyMap(arbitrary[(R, String)])
+          .filter(_.size > 1)
+          .map(storage.ScalaCollectionStorage.from[F, K, R])
+
       for {
-        s <- genNonEmptyStorage[F, K, R]
-        k <- Gen.oneOf(s.dump.keys.toVector)
+         s <- storageWithAtLeastTwo
+        k1 <- Gen.oneOf(s.dump.keys.toVector)
+        k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
-        StorageAndRequest(s, After(k))
+        StorageAndInsertRequest(s, Between(k1, k2).get)
       }
     }
 }
