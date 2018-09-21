@@ -18,14 +18,21 @@ object ScalaCollectionStorage {
   /**
    * Factory method for seeding state
    *
-   * @param xs An immutable bi-directional map. Construction will bomb if the map is not bidirectionally unique
+   * @param xs A map of ranks to anonymous payloads
    *
    * @tparam F An effect type
    * @tparam K A key type
    * @tparam R A rank type
    */
-  def from[F[_] : Sync, K : KeyLike, R](xs: Map[K, Record[R]]): ScalaCollectionStorage[F, K, R] =
-    new ScalaCollectionStorage(collection.mutable.Map(xs.toList: _*))
+  def from[F[_] : Sync, K : KeyLike, R](xs: Map[R, String]): ScalaCollectionStorage[F, K, R] = {
+    val store = new ScalaCollectionStorage[F, K, R]
+
+    xs.foreach { case (r, s) =>
+      store.addRecord(s, r)
+    }
+
+    store
+  }
 }
 
 /**
@@ -36,11 +43,12 @@ object ScalaCollectionStorage {
  * @tparam K The type for primary keys in this storage. Usually `Int`
  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
  */
-class ScalaCollectionStorage[F[_], K, R](xs: collection.mutable.Map[K, Record[R]])(implicit F: Sync[F], K: KeyLike[K]) extends Storage[F, K, R] {
-  assertUniqueRanks()
-
+class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends Storage[F, K, R] {
   private var pkSeed: K =
     K.first
+
+  private val xs =
+    collection.mutable.Map.empty[K, Record[R]]
 
   def getSnapshot: F[Snapshot] =
     F.delay {
@@ -61,15 +69,7 @@ class ScalaCollectionStorage[F[_], K, R](xs: collection.mutable.Map[K, Record[R]
 
   def insertNewRecord(payload: String, rank: R): F[Row] =
     F.delay {
-      val rec = Record(payload, rank)
-
-      val pk = pkSeed
-      pkSeed = K.increment(pkSeed)
-
-      xs += (pk -> rec)
-      assertUniqueRanks()
-
-      (pk, rec)
+      addRecord(payload, rank)
     }
 
   def applyUpdate(up: Update): F[Unit] =
@@ -80,6 +80,21 @@ class ScalaCollectionStorage[F[_], K, R](xs: collection.mutable.Map[K, Record[R]
 
   private def assertUniqueRanks(): Unit =
     assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
+
+  /**
+   * Not a part of the public API. For testing only.
+   */
+  def addRecord(payload: String, rank: R): Row = {
+    val rec = Record(payload, rank)
+
+    val pk = pkSeed
+    pkSeed = K.increment(pkSeed)
+
+    xs += (pk -> rec)
+    assertUniqueRanks()
+
+    (pk, rec)
+  }
 
   /**
    * Not a part of the public API. For testing only.

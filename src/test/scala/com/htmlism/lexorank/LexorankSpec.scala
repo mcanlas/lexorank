@@ -111,7 +111,7 @@ class LexorankSpec
   // TODO for any given state, property test that INSERT and CHANGE requests retain their properties
   // i.e. previous sort was maintained and requested sort is also satisified
 
-  "a valid Insert Before request" should "increment size and retain order" in {
+  "a valid Insert Before request" should "increment size; reflect requested order; retain old order" in {
     forAll { pair: StorageAndRequest[IO, PosInt, PosInt, Before] =>
       val StorageAndRequest(store, req) = pair
 
@@ -125,10 +125,9 @@ class LexorankSpec
         } yield {
           inside(or) {
             case Right((newPk, rec)) =>
-              (xs2 - newPk).toList should contain theSameElementsInOrderAs xs1.toList
+              xs2 diff List(newPk) should contain theSameElementsInOrderAs xs1
 
-              val aftList = xs2.toList
-              aftList.indexOf(newPk) < aftList.indexOf(req.k)
+              assert(xs2.indexOf(newPk) < xs2.indexOf(req.k), s"new pk $newPk comes before requested pk ${req.k}")
           }
         }
 
@@ -137,7 +136,7 @@ class LexorankSpec
     }
   }
 
-  "a valid Insert After request" should "increment size and retain order" in {
+  "a valid Insert After request" should "increment size; reflect requested order; retain old order" in {
     forAll { pair: StorageAndRequest[IO, PosInt, PosInt, After] =>
       val StorageAndRequest(store, req) = pair
 
@@ -151,10 +150,9 @@ class LexorankSpec
         } yield {
           inside(or) {
             case Right((newPk, rec)) =>
-              (xs2 - newPk).toList should contain theSameElementsInOrderAs xs1.toList
+              xs2 diff List(newPk) should contain theSameElementsInOrderAs xs1
 
-              val aftList = xs2.toList
-              aftList.indexOf(newPk) > aftList.indexOf(req.k)
+              assert(xs2.indexOf(newPk) > xs2.indexOf(req.k), s"new pk $newPk comes after requested pk ${req.k}")
           }
         }
 

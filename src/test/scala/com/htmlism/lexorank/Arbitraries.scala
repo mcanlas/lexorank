@@ -19,30 +19,15 @@ trait Arbitraries {
         .map(PosInt.apply)
     }
 
-  implicit def bimap[K : Arbitrary, V : Arbitrary]: Arbitrary[Bimap[K, V]] =
-    Arbitrary {
-      arbitrary[List[(K, V)]]
-        .map(Bimap.fromList)
-    }
-
   implicit def arbStorage[K : Arbitrary : KeyLike, V : Arbitrary : Rankable]: Arbitrary[storage.ScalaCollectionStorage[IO, K, V]] =
     Arbitrary {
-      arbitrary[Bimap[K, V]]
-        .map(xs => buildStorage(xs)) // xs because scala?
-    }
-
-  private def buildStorage[K : KeyLike, V : Rankable](xs: Bimap[K, V]): storage.ScalaCollectionStorage[IO, K, V] =
-    storage.ScalaCollectionStorage.from {
-      xs
-        .xs
-        .map { case (k, v) => k -> Record("", v) }
+      genNonEmptyStorage[IO, K, V]
     }
 
   private def genNonEmptyStorage[F[_] : Sync, K : Arbitrary : KeyLike, V : Arbitrary]: Gen[storage.ScalaCollectionStorage[F, K, V]] =
     Gen
-      .nonEmptyListOf(arbitrary[(K, V)])
-      .map(Bimap.fromList)
-      .map(_.xs.map { case (k, v) => k -> Record("", v) })
+      .nonEmptyListOf(arbitrary[(V, String)])
+      .map(_.toMap)
       .map(storage.ScalaCollectionStorage.from[F, K, V])
 
   implicit def arbInsertBefore[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndRequest[F, K, R, Before]] =

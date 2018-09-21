@@ -41,11 +41,13 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
    */
   type Update = RankUpdate[K, R]
 
-  def getRows: F[collection.immutable.ListSet[K]] =
+  /**
+   * Scala `ListSet` is buggy in 2.11 so don't bother.
+   */
+  def getRows: F[List[K]] =
     store
       .getSnapshot
       .map(_.toList.sortBy(_._2).map(_._1))
-      .map(xs => collection.immutable.ListSet(xs: _*))
 
   /**
    * A public method for attempting to insert an anonymous payload at some position.
