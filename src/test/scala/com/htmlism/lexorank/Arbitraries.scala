@@ -26,8 +26,7 @@ trait Arbitraries {
 
   private def genNonEmptyStorage[F[_] : Sync, K : Arbitrary : KeyLike, V : Arbitrary]: Gen[storage.ScalaCollectionStorage[F, K, V]] =
     Gen
-      .nonEmptyListOf(arbitrary[(V, String)])
-      .map(_.toMap)
+      .nonEmptyMap(arbitrary[(V, String)])
       .map(storage.ScalaCollectionStorage.from[F, K, V])
 
   implicit def arbInsertBefore[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndRequest[F, K, R, Before]] =
