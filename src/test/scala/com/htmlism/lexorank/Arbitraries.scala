@@ -1,8 +1,6 @@
 package com.htmlism.lexorank
 
-import cats._
 import cats.effect._
-import mouse.all._
 
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
@@ -40,7 +38,17 @@ trait Arbitraries {
       }
     }
 
-  implicit def arbBetween[F[_] : Sync, K : KeyLike : Arbitrary : Eq, R : Arbitrary]: Arbitrary[StorageAndInsertRequest[F, K, R, Between]] =
+  implicit def arbInsertAfter[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndInsertRequest[F, K, R, After]] =
+    Arbitrary {
+      for {
+        s <- genNonEmptyStorage[F, K, R]
+        k <- Gen.oneOf(s.dump.keys.toVector)
+      } yield {
+        StorageAndInsertRequest(s, After(k))
+      }
+    }
+
+  implicit def arbChangeBefore[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndChangeRequest[F, K, R, Before]] =
     Arbitrary {
       val storageWithAtLeastTwo =
         Gen
@@ -53,7 +61,24 @@ trait Arbitraries {
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
-        StorageAndInsertRequest(s, Between(k1, k2).get)
+        StorageAndChangeRequest(s, k1, Before(k2))
+      }
+    }
+
+  implicit def arbChangeAfter[F[_] : Sync, K : KeyLike : Arbitrary, R : Arbitrary]: Arbitrary[StorageAndChangeRequest[F, K, R, After]] =
+    Arbitrary {
+      val storageWithAtLeastTwo =
+        Gen
+          .nonEmptyMap(arbitrary[(R, String)])
+          .filter(_.size > 1)
+          .map(storage.ScalaCollectionStorage.from[F, K, R])
+
+      for {
+        s <- storageWithAtLeastTwo
+        k1 <- Gen.oneOf(s.dump.keys.toVector)
+        k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
+      } yield {
+        StorageAndChangeRequest(s, k1, After(k2))
       }
     }
 }

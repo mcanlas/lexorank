@@ -160,4 +160,58 @@ class LexorankSpec
         .unsafeRunSync()
     }
   }
+
+  "a valid Change Before request" should "maintain size; reflect requested order; retain old order" in {
+    forAll { trio: StorageAndChangeRequest[IO, PosInt, PosInt, Before] =>
+      val StorageAndChangeRequest(store, pk, req) = trio
+
+      val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
+
+      val io =
+        for {
+          xs1 <- flow.getRows
+          or <- flow.changePosition(pk, req)
+          xs2 <- flow.getRows
+        } yield {
+          inside(or) {
+            case Right((echoPk, rec)) =>
+              pk shouldBe echoPk
+
+              xs2 diff List(pk) should contain theSameElementsInOrderAs (xs1 diff List(pk))
+
+              assert(xs2.indexOf(pk) > xs2.indexOf(req.k), s"pk $pk comes after requested pk ${req.k}")
+          }
+        }
+
+      io
+        .unsafeRunSync()
+    }
+  }
+
+  "a valid Insert After request" should "maintain size; reflect requested order; retain old order" ignore {
+    forAll { trio: StorageAndChangeRequest[IO, PosInt, PosInt, After] =>
+      val StorageAndChangeRequest(store, pk, req) = trio
+
+      val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
+
+      val io =
+        for {
+          xs1 <- flow.getRows
+          or <- flow.changePosition(pk, req)
+          xs2 <- flow.getRows
+        } yield {
+          inside(or) {
+            case Right((echoPk, rec)) =>
+              pk shouldBe echoPk
+
+              xs2 diff List(pk) should contain theSameElementsInOrderAs xs1
+
+              assert(xs2.indexOf(pk) > xs2.indexOf(req.k), s"pk $pk comes after requested pk ${req.k}")
+          }
+        }
+
+      io
+        .unsafeRunSync()
+    }
+  }
 }
