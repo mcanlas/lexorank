@@ -75,6 +75,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
   /**
    * ID cannot be equal either of the provided `before` or `after`.
    */
+  // TODO is there a pathological case here where you might request a change that is already true?
   def changePosition(id: K, req: PositionRequest[K]): F[Row Or ChangeError] =
     if (req.after.contains(id))
       F.pure(Left(IdWasInAfter))
