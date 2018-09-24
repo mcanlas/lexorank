@@ -1,5 +1,7 @@
 package com.htmlism.lexorank
 
+import com.htmlism.lexorank.errors._
+
 /**
   * Behavior for manipulating ranks.
   *
@@ -39,14 +41,6 @@ trait Rankable[A] {
   * sign that the key space is very crowded and only supports safe inserts/changes in specific places. Redistributing
   * keys and/or using a larger key space can help alleviate this error.
   */
-sealed trait OverflowError
-
-sealed trait MaxOverflow extends OverflowError
-case object MaxOverflow extends MaxOverflow
-
-sealed trait MinUnderflow extends OverflowError
-case object MinUnderflow extends MinUnderflow
-
 object Rankable {
   def apply[A: Rankable]: Rankable[A] =
     implicitly[Rankable[A]]
@@ -87,4 +81,4 @@ object Rankable {
 
 sealed trait CollisionStrategy
 case object MoveDown extends CollisionStrategy
-case object MoveUp extends CollisionStrategy
+case object MoveUp   extends CollisionStrategy

@@ -71,7 +71,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     * We reached this area because we determined in memory that finding a new rank key was not possible. The
     * end of this IO should be the end of the transaction also (to relax the select for update locks).
     */
-  private def handleKeySpaceError(err: OverflowError): F[Row Or String] =
+  private def handleKeySpaceError(err: errors.OverflowError): F[Row Or String] =
     F.pure {
       Left("could not make space for you, sorry bud")
     }
@@ -132,7 +132,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
       ctx: Snapshot,
       updates: List[Update],
       rank: R,
-      oStrat: Option[CollisionStrategy]): List[Update] Or OverflowError =
+      oStrat: Option[CollisionStrategy]): List[Update] Or errors.OverflowError =
     Lexorank.rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat =
@@ -167,7 +167,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     */
   // TODO it is possible that the key did not exist in the database
   private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R = {
-    val afterRank = req.after.flatMap(ctx.get)
+    val afterRank  = req.after.flatMap(ctx.get)
     val beforeRank = req.before.flatMap(ctx.get)
 
     (afterRank, beforeRank) match {
