@@ -52,6 +52,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
   /**
    * A public method for attempting to insert an anonymous payload at some position.
    */
+  // TODO request keys must be validated as being in the context
   def insertAt(payload: String, pos: PositionRequest[K]): F[Row Or String] =
     store.lockSnapshot >>= attemptInsert(payload, pos)
 
@@ -75,6 +76,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
   /**
    * ID cannot be equal either of the provided `before` or `after`.
    */
+  // TODO is there a pathological case here where you might request a change that is already true?
   def changePosition(id: K, req: PositionRequest[K]): F[Row Or ChangeError] =
     if (req.after.contains(id))
       F.pure(Left(IdWasInAfter))
@@ -85,6 +87,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
       store.lockSnapshot
         .map(doIt(id))
 
+  // TODO these guts are totally wrong
   private def doIt(id: K)(ctx: Snapshot): Row Or ChangeError =
     ctx
       .get(id)

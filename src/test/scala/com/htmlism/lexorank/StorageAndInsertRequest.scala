@@ -12,4 +12,4 @@ package com.htmlism.lexorank
  * @tparam K A key type
  * @tparam R A rank type
  */
-case class StorageAndRequest[F[_], K, R, PR[_] <: PositionRequest[_]](flow: storage.ScalaCollectionStorage[F, K, R], req: PR[K])
+case class StorageAndInsertRequest[F[_], K, R, PR[_] <: PositionRequest[_]](flow: storage.ScalaCollectionStorage[F, K, R], req: PR[K])
