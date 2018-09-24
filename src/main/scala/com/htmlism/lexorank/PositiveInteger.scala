@@ -6,8 +6,8 @@ object PositiveInteger {
 }
 
 /**
- * A newtype for integers that are greater than zero.
- */
+  * A newtype for integers that are greater than zero.
+  */
 case class PositiveInteger(n: Int) {
   override def toString: String =
     n.toString

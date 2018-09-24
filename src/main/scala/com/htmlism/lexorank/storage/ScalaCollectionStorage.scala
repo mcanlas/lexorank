@@ -5,30 +5,33 @@ import cats.implicits._
 import cats.effect._
 
 object ScalaCollectionStorage {
+
   /**
-   * Factory from nothing.
-   *
-   * @tparam F An effect type
-   * @tparam K A key type
-   * @tparam R A rank type
-   */
-  def empty[F[_] : Sync, K : KeyLike, R]: ScalaCollectionStorage[F, K, R] =
+    * Factory from nothing.
+    *
+    * @tparam F An effect type
+    * @tparam K A key type
+    * @tparam R A rank type
+    */
+  def empty[F[_]: Sync, K: KeyLike, R]: ScalaCollectionStorage[F, K, R] =
     from(Map.empty)
 
   /**
-   * Factory method for seeding state
-   *
-   * @param xs A map of ranks to anonymous payloads
-   *
-   * @tparam F An effect type
-   * @tparam K A key type
-   * @tparam R A rank type
-   */
-  def from[F[_] : Sync, K : KeyLike, R](xs: Map[R, String]): ScalaCollectionStorage[F, K, R] = {
+    * Factory method for seeding state
+    *
+    * @param xs A map of ranks to anonymous payloads
+    *
+    * @tparam F An effect type
+    * @tparam K A key type
+    * @tparam R A rank type
+    */
+  def from[F[_]: Sync, K: KeyLike, R](
+      xs: Map[R, String]): ScalaCollectionStorage[F, K, R] = {
     val store = new ScalaCollectionStorage[F, K, R]
 
-    xs.foreach { case (r, s) =>
-      store.addRecord(s, r)
+    xs.foreach {
+      case (r, s) =>
+        store.addRecord(s, r)
     }
 
     store
@@ -36,14 +39,15 @@ object ScalaCollectionStorage {
 }
 
 /**
- * @param xs A bi-directional map between PKs and ranks.
- * @param K Evidence for key behaviors over `K`
- *
- * @tparam F An effect type
- * @tparam K The type for primary keys in this storage. Usually `Int`
- * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
- */
-class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends Storage[F, K, R] {
+  * @param xs A bi-directional map between PKs and ranks.
+  * @param K Evidence for key behaviors over `K`
+  *
+  * @tparam F An effect type
+  * @tparam K The type for primary keys in this storage. Usually `Int`
+  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
+  */
+class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K])
+    extends Storage[F, K, R] {
   private var pkSeed: K =
     K.first
 
@@ -52,15 +56,13 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) ext
 
   def getSnapshot: F[Snapshot] =
     F.delay {
-      xs
-        .map(r => r._1 -> r._2.rank)
+      xs.map(r => r._1 -> r._2.rank)
         .toMap
     }
 
   def lockSnapshot: F[Snapshot] =
     F.delay {
-      xs
-        .map(r => r._1 -> r._2.rank)
+      xs.map(r => r._1 -> r._2.rank)
         .toMap
     }
 
@@ -82,8 +84,8 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) ext
     assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
 
   /**
-   * Not a part of the public API. For testing only.
-   */
+    * Not a part of the public API. For testing only.
+    */
   def addRecord(payload: String, rank: R): Row = {
     val rec = Record(payload, rank)
 
@@ -97,14 +99,14 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) ext
   }
 
   /**
-   * Not a part of the public API. For testing only.
-   */
+    * Not a part of the public API. For testing only.
+    */
   def dump: Map[K, Record[R]] =
     xs.toMap
 
   /**
-   * Not a part of the public API. For testing only.
-   */
+    * Not a part of the public API. For testing only.
+    */
   def size: Int =
     xs.size
 
