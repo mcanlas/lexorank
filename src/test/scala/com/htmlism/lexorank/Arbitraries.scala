@@ -66,7 +66,7 @@ trait Arbitraries {
           .map(storage.ScalaCollectionStorage.from[F, K, R])
 
       for {
-        s <- storageWithAtLeastTwo
+        s  <- storageWithAtLeastTwo
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
@@ -84,7 +84,7 @@ trait Arbitraries {
           .map(storage.ScalaCollectionStorage.from[F, K, R])
 
       for {
-        s <- storageWithAtLeastTwo
+        s  <- storageWithAtLeastTwo
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {

@@ -57,7 +57,7 @@ class LexorankSpec
   "insertion anywhere" should "always be successful given an int-sized store" in {
     forAll { store: storage.ScalaCollectionStorage[IO, PosInt, PosInt] =>
       val previousSize = store.size
-      val flow = new LexorankFlow(store, rgPosInt)
+      val flow         = new LexorankFlow(store, rgPosInt)
 
       flow
         .insertAt("", Anywhere)
@@ -71,7 +71,7 @@ class LexorankSpec
     val limit = 10
 
     val store = storage.ScalaCollectionStorage.empty[IO, PosInt, UpToTen]
-    val flow = new LexorankFlow(store, UpToTen.AlwaysSayMin)
+    val flow  = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
       println(n + ":")
@@ -104,7 +104,7 @@ class LexorankSpec
   "insertion anywhere" should "error given a crowded key space" ignore {
     forAll { store: storage.ScalaCollectionStorage[IO, PosInt, UpToTen] =>
       val previousSize = store.size
-      val flow = new LexorankFlow(store, UpToTen.AlwaysSayMin)
+      val flow         = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 
       flow
         .insertAt("", Anywhere)
@@ -127,7 +127,7 @@ class LexorankSpec
         val io =
           for {
             xs1 <- flow.getRows
-            or <- flow.insertAt(s, req)
+            or  <- flow.insertAt(s, req)
             xs2 <- flow.getRows
           } yield {
             inside(or) {
@@ -153,7 +153,7 @@ class LexorankSpec
         val io =
           for {
             xs1 <- flow.getRows
-            or <- flow.insertAt(s, req)
+            or  <- flow.insertAt(s, req)
             xs2 <- flow.getRows
           } yield {
             inside(or) {
@@ -178,7 +178,7 @@ class LexorankSpec
       val io =
         for {
           xs1 <- flow.getRows
-          or <- flow.changePosition(pk, req)
+          or  <- flow.changePosition(pk, req)
           xs2 <- flow.getRows
         } yield {
           inside(or) {
@@ -206,7 +206,7 @@ class LexorankSpec
       val io =
         for {
           xs1 <- flow.getRows
-          or <- flow.changePosition(pk, req)
+          or  <- flow.changePosition(pk, req)
           xs2 <- flow.getRows
         } yield {
           inside(or) {

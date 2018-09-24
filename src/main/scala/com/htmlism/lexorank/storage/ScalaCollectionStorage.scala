@@ -56,14 +56,12 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K])
 
   def getSnapshot: F[Snapshot] =
     F.delay {
-      xs.map(r => r._1 -> r._2.rank)
-        .toMap
+      xs.map(r => r._1 -> r._2.rank).toMap
     }
 
   def lockSnapshot: F[Snapshot] =
     F.delay {
-      xs.map(r => r._1 -> r._2.rank)
-        .toMap
+      xs.map(r => r._1 -> r._2.rank).toMap
     }
 
   def makeSpace(xs: List[Update]): F[Unit] =
