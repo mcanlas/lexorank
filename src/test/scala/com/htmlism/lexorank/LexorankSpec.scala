@@ -161,7 +161,7 @@ class LexorankSpec
     }
   }
 
-  "a valid Change Before request" should "maintain size; reflect requested order; retain old order" in {
+  "a valid Change Before request" should "maintain size; reflect requested order; retain old order" ignore {
     forAll { trio: StorageAndChangeRequest[IO, PosInt, PosInt, Before] =>
       val StorageAndChangeRequest(store, pk, req) = trio
 
