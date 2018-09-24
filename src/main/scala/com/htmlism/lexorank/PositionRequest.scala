@@ -10,8 +10,8 @@ sealed trait PositionRequest[+A] {
 }
 
 /**
- * Not used often. Could be used when creating the first row.
- */
+  * Not used often. Could be used when creating the first row.
+  */
 case object Anywhere extends PositionRequest[Nothing] {
   def after: Option[Nothing] =
     None
@@ -44,7 +44,7 @@ object Between {
       Some(new Between[A](a, b))
 }
 
-class Between[A] private(min: A, max: A) extends PositionRequest[A] {
+class Between[A] private (min: A, max: A) extends PositionRequest[A] {
   def after: Option[A] =
     Some(min)
 

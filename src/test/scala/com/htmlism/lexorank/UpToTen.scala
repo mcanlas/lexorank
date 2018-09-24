@@ -1,8 +1,8 @@
 package com.htmlism.lexorank
 
 /**
- * A newtype for integers between 1 and 10 inclusive. Used to simulate an easily-crowded key space.
- */
+  * A newtype for integers between 1 and 10 inclusive. Used to simulate an easily-crowded key space.
+  */
 case class UpToTen(n: Int) {
   override def toString: String =
     "T(" + n.toString + ")"
