@@ -57,16 +57,16 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
   /**
     * A public method for attempting to insert an anonymous payload at some position.
     */
-  // TODO request keys must be validated as being in the context
   def insertAt(payload: String,
                pos: PositionRequest[K]): F[Row Or LexorankError] =
     store.lockSnapshot
       .map(inContext(pos))
       .flatMap {
         case Left(err) =>
-          err.asLeft[Row].pure[F]
+          (err: LexorankError).asLeft[Row].pure[F]
 
         case Right(x) =>
+          // TODO can the F here be moved so that the merging is less weird
           attemptInsert(payload, pos)(x) match {
             case Left(err) =>
               (err: LexorankError).asLeft[Row].pure[F]
@@ -76,14 +76,13 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
           }
       }
 
-  private def inContext(req: PositionRequest[K])(
-      ctx: Snapshot): Snapshot Or LexorankError = {
+  private def inContext(req: PositionRequest[K])(ctx: Snapshot) = {
     val toTest = req.before.toList ::: req.after.toList
 
     val maybeKeys = toTest.map(ctx.get)
 
     if (maybeKeys.exists(_.isEmpty))
-      Left(KeyNotInContext: LexorankError)
+      Left(KeyNotInContext)
     else
       Right(ctx)
   }
