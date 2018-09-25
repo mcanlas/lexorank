@@ -34,26 +34,26 @@ trait Arbitraries {
       .nonEmptyMap(arbitrary[(V, String)])
       .map(storage.ScalaCollectionStorage.from[F, K, V])
 
+  private def genInvalidInsert[F[_]: Sync,
+                               K: KeyLike: Arbitrary,
+                               R: Arbitrary] =
+    for {
+      s <- genNonEmptyStorage[F, K, R]
+      k <- Gen.oneOf(s.dump.keys.toVector)
+    } yield (s, k)
+
   implicit def arbInsertBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
     : Arbitrary[StorageAndValidInsertRequest[F, K, R, Before]] =
     Arbitrary {
-      for {
-        s <- genNonEmptyStorage[F, K, R]
-        k <- Gen.oneOf(s.dump.keys.toVector)
-      } yield {
-        StorageAndValidInsertRequest(s, Before(k))
-      }
+      genInvalidInsert[F, K, R]
+        .map { case (s, k) => StorageAndValidInsertRequest(s, Before(k)) }
     }
 
   implicit def arbInsertAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
     : Arbitrary[StorageAndValidInsertRequest[F, K, R, After]] =
     Arbitrary {
-      for {
-        s <- genNonEmptyStorage[F, K, R]
-        k <- Gen.oneOf(s.dump.keys.toVector)
-      } yield {
-        StorageAndValidInsertRequest(s, After(k))
-      }
+      genInvalidInsert[F, K, R]
+        .map { case (s, k) => StorageAndValidInsertRequest(s, After(k)) }
     }
 
   implicit def arbChangeBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
