@@ -100,7 +100,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     }
 
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
-    generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
+    generateNewRank(ctx)(pos) |> maybeMakeSpaceFor(ctx)
 
   /**
     * ID cannot be equal either of the provided `before` or `after`.
@@ -124,7 +124,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
         Right(id -> Record("", RG.anywhere))
       }
 
-  private def makeSpaceFor(ctx: Snapshot)(rank: R) = {
+  private def maybeMakeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
     makeSpaceForReally(ctx, Nil, rank, None)
       .map(ups => ups -> rank)
