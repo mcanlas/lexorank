@@ -7,6 +7,9 @@ sealed trait PositionRequest[+A] {
   def before: Option[A]
 
   def after: Option[A]
+
+  def keys: List[A] =
+    before.toList ::: after.toList
 }
 
 /**
