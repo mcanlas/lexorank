@@ -64,12 +64,16 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     */
   def insertAt(payload: String,
                pos: PositionRequest[K]): F[Row Or LexorankError] =
-    store.lockSnapshot
-      .flatMap { ctx =>
-        (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
-          .traverse((attemptInsert(payload) _).tupled)
-      }
+    store.lockSnapshot >>= attemptInsertWorkflow(pos, payload)
 
+  private def attemptInsertWorkflow(pos: PositionRequest[K], payload: String)(
+      ctx: Snapshot) =
+    (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
+      .traverse((attemptWritesToStorage(payload) _).tupled)
+
+  /**
+    * Partially unified type annotation for IntelliJ's benefit.
+    */
   private def isKeyInContext(req: PositionRequest[K],
                              ctx: Snapshot): OrLexorankError[Snapshot] = {
     val toTest = req.before.toList ::: req.after.toList
@@ -82,7 +86,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
       Right(ctx)
   }
 
-  private def attemptInsert(payload: String)(xs: List[Update], r: R) =
+  private def attemptWritesToStorage(payload: String)(xs: List[Update], r: R) =
     store.makeSpace(xs) *> store.insertNewRecord(payload, r)
 
   /**
