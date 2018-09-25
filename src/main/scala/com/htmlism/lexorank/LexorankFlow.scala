@@ -48,6 +48,11 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
   type Update = RankUpdate[K, R]
 
   /**
+    * Partially unified alias for IntelliJ's benefit.
+    */
+  type OrLexorankError[A] = A Or LexorankError
+
+  /**
     * Scala `ListSet` is buggy in 2.11 so don't bother.
     */
   def getRows: F[List[K]] =
@@ -61,12 +66,12 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
                pos: PositionRequest[K]): F[Row Or LexorankError] =
     store.lockSnapshot
       .flatMap { ctx =>
-        inContext(pos)(ctx)
-          .flatMap(canWeCreateANewRank(pos))
+        (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
           .traverse((attemptInsert(payload) _).tupled)
       }
 
-  private def inContext(req: PositionRequest[K])(ctx: Snapshot) = {
+  private def isKeyInContext(req: PositionRequest[K],
+                             ctx: Snapshot): OrLexorankError[Snapshot] = {
     val toTest = req.before.toList ::: req.after.toList
 
     val maybeKeys = toTest.map(ctx.get)
