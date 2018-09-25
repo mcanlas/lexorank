@@ -6,8 +6,6 @@ import cats._
 import cats.implicits._
 import mouse.all._
 
-import com.htmlism.lexorank.errors._
-
 /**
   * We can consciously choose not to support the use case of inserting new records in storage that currently has no
   * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
@@ -81,7 +79,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     val maybeKeys = toTest.map(ctx.get)
 
     if (maybeKeys.exists(_.isEmpty))
-      Left(KeyNotInContext)
+      Left(errors.KeyNotInContext)
     else
       Right(ctx)
   }
