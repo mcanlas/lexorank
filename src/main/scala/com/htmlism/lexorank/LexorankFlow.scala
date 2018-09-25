@@ -61,17 +61,9 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
                pos: PositionRequest[K]): F[Row Or LexorankError] =
     store.lockSnapshot
       .flatMap { ctx =>
-        val ei = inContext(pos)(ctx)
+        inContext(pos)(ctx)
           .flatMap(canWeCreateANewRank(pos))
-          .map((attemptInsert(payload) _).tupled)
-
-        ei match {
-          case Left(err) =>
-            err.asLeft[Row].pure[F]
-
-          case Right(io) =>
-            io.map(_.asRight[LexorankError])
-        }
+          .traverse((attemptInsert(payload) _).tupled)
       }
 
   private def inContext(req: PositionRequest[K])(ctx: Snapshot) = {
@@ -85,7 +77,6 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
       Right(ctx)
   }
 
-  // TODO unused
   private def attemptInsert(payload: String)(xs: List[Update], r: R) =
     store.makeSpace(xs) *> store.insertNewRecord(payload, r)
 
