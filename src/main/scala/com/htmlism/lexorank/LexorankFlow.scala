@@ -78,10 +78,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
 
     val maybeKeys = toTest.map(ctx.get)
 
-    if (maybeKeys.exists(_.isEmpty))
-      Left(errors.KeyNotInContext)
-    else
-      Right(ctx)
+    Either.cond(maybeKeys.forall(_.nonEmpty), ctx, errors.KeyNotInContext)
   }
 
   private def attemptWritesToStorage(payload: String)(xs: List[Update], r: R) =
