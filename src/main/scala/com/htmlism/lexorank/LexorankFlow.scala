@@ -63,10 +63,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
       .flatMap { ctx =>
         val ei = inContext(pos)(ctx)
           .flatMap(canWeCreateANewRank(pos))
-          .map {
-            case (xs, r) =>
-              store.makeSpace(xs) *> store.insertNewRecord(payload, r)
-          }
+          .map((attemptInsert(payload) _).tupled)
 
         ei match {
           case Left(err) =>
@@ -89,12 +86,8 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
   }
 
   // TODO unused
-  private def attemptInsert(payload: String, pos: PositionRequest[K])(
-      ctx: Snapshot) =
-    canWeCreateANewRank(pos)(ctx)
-      .map {
-        case (xs, r) => store.makeSpace(xs) *> store.insertNewRecord(payload, r)
-      }
+  private def attemptInsert(payload: String)(xs: List[Update], r: R) =
+    store.makeSpace(xs) *> store.insertNewRecord(payload, r)
 
   /**
     * We reached this area because we determined in memory that finding a new rank key was not possible. The
