@@ -6,7 +6,7 @@ import cats._
 import cats.implicits._
 import mouse.all._
 
-import com.htmlism.lexorank.errors.KeyNotInContext
+import com.htmlism.lexorank.errors._
 
 /**
   * We can consciously choose not to support the use case of inserting new records in storage that currently has no
@@ -58,29 +58,32 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     * A public method for attempting to insert an anonymous payload at some position.
     */
   // TODO request keys must be validated as being in the context
-  def insertAt(payload: String, pos: PositionRequest[K]): F[Row Or LexorankError] =
-    store.lockSnapshot.map(inContext(pos))
-    .flatMap {
-      case Left(err) =>
-        err.asLeft[Nothing].pure
+  def insertAt(payload: String,
+               pos: PositionRequest[K]): F[Row Or LexorankError] =
+    store.lockSnapshot
+      .map(inContext(pos))
+      .flatMap {
+        case Left(err) =>
+          err.asLeft[Row].pure[F]
 
-      case Right(x) =>
-        attemptInsert(payload, pos)(x) match {
-          case Left(err) =>
-            err.asLeft[Nothing].pure
+        case Right(x) =>
+          attemptInsert(payload, pos)(x) match {
+            case Left(err) =>
+              (err: LexorankError).asLeft[Row].pure[F]
 
-          case Right(x2) =>
-            x2.map(_.asRight[LexorankError])
-        }
-  }
+            case Right(x2) =>
+              x2.map(_.asRight[LexorankError])
+          }
+      }
 
-  private def inContext(req: PositionRequest[K])(ctx: Snapshot) = {
+  private def inContext(req: PositionRequest[K])(
+      ctx: Snapshot): Snapshot Or LexorankError = {
     val toTest = req.before.toList ::: req.after.toList
 
     val maybeKeys = toTest.map(ctx.get)
 
     if (maybeKeys.exists(_.isEmpty))
-      Left(KeyNotInContext : LexorankError)
+      Left(KeyNotInContext: LexorankError)
     else
       Right(ctx)
   }
