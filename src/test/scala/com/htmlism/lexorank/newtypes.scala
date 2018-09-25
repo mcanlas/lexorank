@@ -8,6 +8,7 @@ package com.htmlism.lexorank
   *
   * @param flow A Lexorank instance
   * @param req A position request for that instance
+  *
   * @tparam F A monadic effect type
   * @tparam K A key type
   * @tparam R A rank type
@@ -25,6 +26,7 @@ case class StorageAndValidInsertRequest[F[_], K, R, PR[_] <: PositionRequest[_]]
   * @param flow A Lexorank instance
   * @param pk The identifier for the row being changed
   * @param req A position request for that instance
+  *
   * @tparam F A monadic effect type
   * @tparam K A key type
   * @tparam R A rank type
