@@ -60,20 +60,21 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
   def insertAt(payload: String,
                pos: PositionRequest[K]): F[Row Or LexorankError] =
     store.lockSnapshot
-      .map(inContext(pos))
-      .flatMap {
-        case Left(err) =>
-          (err: LexorankError).asLeft[Row].pure[F]
-
-        case Right(x) =>
-          // TODO can the F here be moved so that the merging is less weird
-          attemptInsert(payload, pos)(x) match {
-            case Left(err) =>
-              (err: LexorankError).asLeft[Row].pure[F]
-
-            case Right(x2) =>
-              x2.map(_.asRight[LexorankError])
+      .flatMap { ctx =>
+        val ei = inContext(pos)(ctx)
+          .flatMap(canWeCreateANewRank(pos))
+          .map {
+            case (xs, r) =>
+              store.makeSpace(xs) *> store.insertNewRecord(payload, r)
           }
+
+        ei match {
+          case Left(err) =>
+            err.asLeft[Row].pure[F]
+
+          case Right(io) =>
+            io.map(_.asRight[LexorankError])
+        }
       }
 
   private def inContext(req: PositionRequest[K])(ctx: Snapshot) = {
@@ -87,6 +88,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
       Right(ctx)
   }
 
+  // TODO unused
   private def attemptInsert(payload: String, pos: PositionRequest[K])(
       ctx: Snapshot) =
     canWeCreateANewRank(pos)(ctx)
@@ -98,6 +100,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     * We reached this area because we determined in memory that finding a new rank key was not possible. The
     * end of this IO should be the end of the transaction also (to relax the select for update locks).
     */
+  // TODO unused
   private def handleKeySpaceError(err: errors.OverflowError): F[Row Or String] =
     F.pure {
       Left("could not make space for you, sorry bud")
