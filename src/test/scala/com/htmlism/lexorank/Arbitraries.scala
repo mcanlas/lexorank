@@ -35,29 +35,29 @@ trait Arbitraries {
       .map(storage.ScalaCollectionStorage.from[F, K, V])
 
   implicit def arbInsertBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndInsertRequest[F, K, R, Before]] =
+    : Arbitrary[StorageAndValidInsertRequest[F, K, R, Before]] =
     Arbitrary {
       for {
         s <- genNonEmptyStorage[F, K, R]
         k <- Gen.oneOf(s.dump.keys.toVector)
       } yield {
-        StorageAndInsertRequest(s, Before(k))
+        StorageAndValidInsertRequest(s, Before(k))
       }
     }
 
   implicit def arbInsertAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndInsertRequest[F, K, R, After]] =
+    : Arbitrary[StorageAndValidInsertRequest[F, K, R, After]] =
     Arbitrary {
       for {
         s <- genNonEmptyStorage[F, K, R]
         k <- Gen.oneOf(s.dump.keys.toVector)
       } yield {
-        StorageAndInsertRequest(s, After(k))
+        StorageAndValidInsertRequest(s, After(k))
       }
     }
 
   implicit def arbChangeBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndChangeRequest[F, K, R, Before]] =
+    : Arbitrary[StorageAndValidChangeRequest[F, K, R, Before]] =
     Arbitrary {
       val storageWithAtLeastTwo =
         Gen
@@ -70,12 +70,12 @@ trait Arbitraries {
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
-        StorageAndChangeRequest(s, k1, Before(k2))
+        StorageAndValidChangeRequest(s, k1, Before(k2))
       }
     }
 
   implicit def arbChangeAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndChangeRequest[F, K, R, After]] =
+    : Arbitrary[StorageAndValidChangeRequest[F, K, R, After]] =
     Arbitrary {
       val storageWithAtLeastTwo =
         Gen
@@ -88,7 +88,7 @@ trait Arbitraries {
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
-        StorageAndChangeRequest(s, k1, After(k2))
+        StorageAndValidChangeRequest(s, k1, After(k2))
       }
     }
 }
