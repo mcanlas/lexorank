@@ -11,7 +11,7 @@ class LexorankSpec
     with Matchers
     with Inside
     with GeneratorDrivenPropertyChecks
-    with Arbitraries
+    with LexorankArbitraries
     with Determinism {
   it should "domain error if pk exists in `after`" in {
     forAll { key: PosInt =>

@@ -5,20 +5,26 @@ import cats.effect._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 
-trait Arbitraries {
-  implicit def upToTen: Arbitrary[UpToTen] =
+trait LexorankArbitraries {
+  implicit val upToTen: Arbitrary[UpToTen] =
     Arbitrary {
       Gen
         .choose(1, 10)
         .map(UpToTen.apply)
     }
 
-  implicit def posInt: Arbitrary[PosInt] =
+  implicit val posInt: Arbitrary[PosInt] =
     Arbitrary {
       Gen
         .choose(1, Int.MaxValue)
         .map(PosInt.apply)
     }
+
+  implicit def arbBefore[A: Arbitrary]: Arbitrary[Before[A]] =
+    Arbitrary { arbitrary[A].map(Before.apply) }
+
+  implicit def arbAfter[A: Arbitrary]: Arbitrary[After[A]] =
+    Arbitrary { arbitrary[A].map(After.apply) }
 
   implicit def arbStorage[K: Arbitrary: KeyLike, V: Arbitrary: Rankable]
     : Arbitrary[storage.ScalaCollectionStorage[IO, K, V]] =
