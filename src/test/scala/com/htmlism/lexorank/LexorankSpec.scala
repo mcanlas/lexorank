@@ -11,7 +11,7 @@ class LexorankSpec
     with Matchers
     with Inside
     with GeneratorDrivenPropertyChecks
-    with Arbitraries
+    with LexorankArbitraries
     with Determinism {
   it should "domain error if pk exists in `after`" in {
     forAll { key: PosInt =>
@@ -119,8 +119,9 @@ class LexorankSpec
 
   "a valid Insert Before request" should "increment size; reflect requested order; retain old order" in {
     forAll {
-      (pair: StorageAndInsertRequest[IO, PosInt, PosInt, Before], s: String) =>
-        val StorageAndInsertRequest(store, req) = pair
+      (pair: StorageAndValidInsertRequest[IO, PosInt, PosInt, Before],
+       s: String) =>
+        val StorageAndValidInsertRequest(store, req) = pair
 
         val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
@@ -145,8 +146,9 @@ class LexorankSpec
 
   "a valid Insert After request" should "increment size; reflect requested order; retain old order" in {
     forAll {
-      (pair: StorageAndInsertRequest[IO, PosInt, PosInt, After], s: String) =>
-        val StorageAndInsertRequest(store, req) = pair
+      (pair: StorageAndValidInsertRequest[IO, PosInt, PosInt, After],
+       s: String) =>
+        val StorageAndValidInsertRequest(store, req) = pair
 
         val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
@@ -170,8 +172,8 @@ class LexorankSpec
   }
 
   "a valid Change Before request" should "maintain size; reflect requested order; retain old order" ignore {
-    forAll { trio: StorageAndChangeRequest[IO, PosInt, PosInt, Before] =>
-      val StorageAndChangeRequest(store, pk, req) = trio
+    forAll { trio: StorageAndValidChangeRequest[IO, PosInt, PosInt, Before] =>
+      val StorageAndValidChangeRequest(store, pk, req) = trio
 
       val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
@@ -198,8 +200,8 @@ class LexorankSpec
   }
 
   "a valid Insert After request" should "maintain size; reflect requested order; retain old order" ignore {
-    forAll { trio: StorageAndChangeRequest[IO, PosInt, PosInt, After] =>
-      val StorageAndChangeRequest(store, pk, req) = trio
+    forAll { trio: StorageAndValidChangeRequest[IO, PosInt, PosInt, After] =>
+      val StorageAndValidChangeRequest(store, pk, req) = trio
 
       val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 

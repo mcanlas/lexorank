@@ -5,20 +5,26 @@ import cats.effect._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 
-trait Arbitraries {
-  implicit def upToTen: Arbitrary[UpToTen] =
+trait LexorankArbitraries {
+  implicit val upToTen: Arbitrary[UpToTen] =
     Arbitrary {
       Gen
         .choose(1, 10)
         .map(UpToTen.apply)
     }
 
-  implicit def posInt: Arbitrary[PosInt] =
+  implicit val posInt: Arbitrary[PosInt] =
     Arbitrary {
       Gen
         .choose(1, Int.MaxValue)
         .map(PosInt.apply)
     }
+
+  implicit def arbBefore[A: Arbitrary]: Arbitrary[Before[A]] =
+    Arbitrary { arbitrary[A].map(Before.apply) }
+
+  implicit def arbAfter[A: Arbitrary]: Arbitrary[After[A]] =
+    Arbitrary { arbitrary[A].map(After.apply) }
 
   implicit def arbStorage[K: Arbitrary: KeyLike, V: Arbitrary: Rankable]
     : Arbitrary[storage.ScalaCollectionStorage[IO, K, V]] =
@@ -34,30 +40,30 @@ trait Arbitraries {
       .nonEmptyMap(arbitrary[(V, String)])
       .map(storage.ScalaCollectionStorage.from[F, K, V])
 
+  private def genInvalidInsert[F[_]: Sync,
+                               K: KeyLike: Arbitrary,
+                               R: Arbitrary] =
+    for {
+      s <- genNonEmptyStorage[F, K, R]
+      k <- Gen.oneOf(s.dump.keys.toVector)
+    } yield (s, k)
+
   implicit def arbInsertBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndInsertRequest[F, K, R, Before]] =
+    : Arbitrary[StorageAndValidInsertRequest[F, K, R, Before]] =
     Arbitrary {
-      for {
-        s <- genNonEmptyStorage[F, K, R]
-        k <- Gen.oneOf(s.dump.keys.toVector)
-      } yield {
-        StorageAndInsertRequest(s, Before(k))
-      }
+      genInvalidInsert[F, K, R]
+        .map { case (s, k) => StorageAndValidInsertRequest(s, Before(k)) }
     }
 
   implicit def arbInsertAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndInsertRequest[F, K, R, After]] =
+    : Arbitrary[StorageAndValidInsertRequest[F, K, R, After]] =
     Arbitrary {
-      for {
-        s <- genNonEmptyStorage[F, K, R]
-        k <- Gen.oneOf(s.dump.keys.toVector)
-      } yield {
-        StorageAndInsertRequest(s, After(k))
-      }
+      genInvalidInsert[F, K, R]
+        .map { case (s, k) => StorageAndValidInsertRequest(s, After(k)) }
     }
 
   implicit def arbChangeBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndChangeRequest[F, K, R, Before]] =
+    : Arbitrary[StorageAndValidChangeRequest[F, K, R, Before]] =
     Arbitrary {
       val storageWithAtLeastTwo =
         Gen
@@ -70,12 +76,12 @@ trait Arbitraries {
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
-        StorageAndChangeRequest(s, k1, Before(k2))
+        StorageAndValidChangeRequest(s, k1, Before(k2))
       }
     }
 
   implicit def arbChangeAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndChangeRequest[F, K, R, After]] =
+    : Arbitrary[StorageAndValidChangeRequest[F, K, R, After]] =
     Arbitrary {
       val storageWithAtLeastTwo =
         Gen
@@ -88,7 +94,7 @@ trait Arbitraries {
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
-        StorageAndChangeRequest(s, k1, After(k2))
+        StorageAndValidChangeRequest(s, k1, After(k2))
       }
     }
 }

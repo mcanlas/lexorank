@@ -54,5 +54,5 @@ trait Storage[F[_], K, R] {
     * It's second use is in a change request. After the "make space" cascade is complete, this will be used to update
     * the row that originated the request.
     */
-  def applyUpdate(up: Update): F[Unit]
+  def applyUpdateInCascade(up: Update): F[Unit]
 }

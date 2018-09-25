@@ -13,6 +13,8 @@ package object lexorank {
   type PosInt = PositiveInteger
   val PosInt = PositiveInteger
 
+  type LexorankError = errors.LexorankError
+
   object AnnotatedIO {
     def apply[A](body: => A): AnnotatedIO[A] =
       IO(body) |> WriterT.liftF[IO, Log, A]

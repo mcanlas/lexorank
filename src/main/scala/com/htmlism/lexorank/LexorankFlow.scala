@@ -46,6 +46,11 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
   type Update = RankUpdate[K, R]
 
   /**
+    * Partially unified alias for IntelliJ's benefit.
+    */
+  type OrLexorankError[A] = A Or LexorankError
+
+  /**
     * Scala `ListSet` is buggy in 2.11 so don't bother.
     */
   def getRows: F[List[K]] =
@@ -55,29 +60,45 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
   /**
     * A public method for attempting to insert an anonymous payload at some position.
     */
-  // TODO request keys must be validated as being in the context
-  def insertAt(payload: String, pos: PositionRequest[K]): F[Row Or String] =
-    store.lockSnapshot >>= attemptInsert(payload, pos)
+  def insertAt(payload: String,
+               pos: PositionRequest[K]): F[Row Or LexorankError] =
+    store.lockSnapshot >>= attemptInsertWorkflow(pos, payload)
 
-  private def attemptInsert(payload: String, pos: PositionRequest[K])(
+  private def attemptInsertWorkflow(pos: PositionRequest[K], payload: String)(
       ctx: Snapshot) =
-    canWeCreateANewRank(pos)(ctx)
-      .map {
-        case (xs, r) => store.makeSpace(xs) *> store.insertNewRecord(payload, r)
-      }
-      .fold(handleKeySpaceError, _.map(_.asRight[String]))
+    (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
+      .traverse((attemptWritesToStorage(payload) _).tupled)
+
+  /**
+    * Partially unified type annotation for IntelliJ's benefit.
+    */
+  private def isKeyInContext(req: PositionRequest[K],
+                             ctx: Snapshot): OrLexorankError[Snapshot] = {
+    val toTest = req.before.toList ::: req.after.toList
+
+    val maybeKeys = toTest.map(ctx.get)
+
+    if (maybeKeys.exists(_.isEmpty))
+      Left(errors.KeyNotInContext)
+    else
+      Right(ctx)
+  }
+
+  private def attemptWritesToStorage(payload: String)(xs: List[Update], r: R) =
+    store.makeSpace(xs) *> store.insertNewRecord(payload, r)
 
   /**
     * We reached this area because we determined in memory that finding a new rank key was not possible. The
     * end of this IO should be the end of the transaction also (to relax the select for update locks).
     */
+  // TODO unused
   private def handleKeySpaceError(err: errors.OverflowError): F[Row Or String] =
     F.pure {
       Left("could not make space for you, sorry bud")
     }
 
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
-    generateNewRank(ctx)(pos) |> makeSpaceFor(ctx)
+    generateNewRank(ctx)(pos) |> maybeMakeSpaceFor(ctx)
 
   /**
     * ID cannot be equal either of the provided `before` or `after`.
@@ -101,7 +122,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
         Right(id -> Record("", RG.anywhere))
       }
 
-  private def makeSpaceFor(ctx: Snapshot)(rank: R) = {
+  private def maybeMakeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
     makeSpaceForReally(ctx, Nil, rank, None)
       .map(ups => ups -> rank)
@@ -128,15 +149,15 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     * were already "taken".
     */
   @tailrec
-  private def makeSpaceForReally(
-      ctx: Snapshot,
-      updates: List[Update],
-      rank: R,
-      oStrat: Option[CollisionStrategy]): List[Update] Or errors.OverflowError =
+  private def makeSpaceForReally(ctx: Snapshot,
+                                 updates: List[Update],
+                                 rank: R,
+                                 previousStrategy: Option[CollisionStrategy])
+    : List[Update] Or errors.OverflowError =
     Lexorank.rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat =
-          getStrat(rank, oStrat)
+          getStrat(rank, previousStrategy)
 
         val newRankMaybe =
           strat |> tryMakeNewRank(rank)
@@ -164,8 +185,9 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
 
   /**
     * This will be the new rank, regardless. Collided onto values will be pushed out.
+    *
+    * At this point after `isKeyInContext` we assume that the keys in the position request exist in the context.
     */
-  // TODO it is possible that the key did not exist in the database
   private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R = {
     val afterRank  = req.after.flatMap(ctx.get)
     val beforeRank = req.before.flatMap(ctx.get)

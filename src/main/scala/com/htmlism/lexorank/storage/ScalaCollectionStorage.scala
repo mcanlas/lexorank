@@ -65,14 +65,14 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K])
     }
 
   def makeSpace(xs: List[Update]): F[Unit] =
-    xs.traverse_(applyUpdate)
+    xs.traverse_(applyUpdateInCascade)
 
   def insertNewRecord(payload: String, rank: R): F[Row] =
     F.delay {
       addRecord(payload, rank)
     }
 
-  def applyUpdate(up: Update): F[Unit] =
+  def applyUpdateInCascade(up: Update): F[Unit] =
     F.delay {
       xs(up.pk) = Record("", up.to)
       assertUniqueRanks()

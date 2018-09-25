@@ -5,6 +5,11 @@ package com.htmlism.lexorank.errors
   */
 sealed trait LexorankError
 
+/**
+  * When a requested row key or position request key does not exist in the context snapshot.
+  */
+case object KeyNotInContext extends LexorankError
+
 sealed trait OverflowError extends LexorankError
 
 sealed trait MaxOverflow extends OverflowError
