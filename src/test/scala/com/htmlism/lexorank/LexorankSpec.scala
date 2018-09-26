@@ -199,7 +199,7 @@ class LexorankSpec
     }
   }
 
-  "a valid Insert After request" should "maintain size; reflect requested order; retain old order" ignore {
+  "a valid Change After request" should "maintain size; reflect requested order; retain old order" ignore {
     forAll { trio: StorageAndValidChangeRequest[IO, PosInt, PosInt, After] =>
       val StorageAndValidChangeRequest(store, pk, req) = trio
 
