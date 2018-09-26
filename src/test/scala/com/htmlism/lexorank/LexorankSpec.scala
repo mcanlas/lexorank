@@ -13,47 +13,6 @@ class LexorankSpec
     with GeneratorDrivenPropertyChecks
     with LexorankArbitraries
     with Determinism {
-  it should "domain error if pk exists in `after`" in {
-    forAll { key: PosInt =>
-      val ret =
-        new LexorankFlow[IO, PosInt, PosInt](
-          storage.ScalaCollectionStorage.empty,
-          rgPosInt)
-          .changePosition(key, After(key))
-          .unsafeRunSync()
-
-      ret shouldBe Left(IdWasInAfter)
-    }
-  }
-
-  it should "domain error if pk exists in `before`" in {
-    forAll { key: PosInt =>
-      val ret =
-        new LexorankFlow[IO, PosInt, PosInt](
-          storage.ScalaCollectionStorage.empty,
-          rgPosInt)
-          .changePosition(key, Before(key))
-          .unsafeRunSync()
-
-      ret shouldBe Left(IdWasInBefore)
-    }
-  }
-
-  it should "domain error if pk does not exist" in {
-    forAll { (keyA: PosInt, keyB: PosInt) =>
-      whenever(keyA != keyB) {
-        val ret =
-          new LexorankFlow[IO, PosInt, PosInt](
-            storage.ScalaCollectionStorage.empty,
-            rgPosInt)
-            .changePosition(keyA, After(keyB))
-            .unsafeRunSync()
-
-        ret shouldBe Left(IdDoesNotExistInStorage)
-      }
-    }
-  }
-
   "insertion anywhere" should "always be successful given an int-sized store" in {
     forAll { store: storage.ScalaCollectionStorage[IO, PosInt, PosInt] =>
       val previousSize = store.size
@@ -171,7 +130,7 @@ class LexorankSpec
     }
   }
 
-  "a valid Change Before request" should "maintain size; reflect requested order; retain old order" ignore {
+  "a valid Change Before request" should "maintain size; reflect requested order; retain old order" in {
     forAll { duo: StorageAndValidChangeBeforeRequest[IO, PosInt, PosInt] =>
       val StorageAndValidChangeBeforeRequest(store, req) = duo
 
@@ -180,26 +139,27 @@ class LexorankSpec
       val io =
         for {
           xs1 <- flow.getRows
-          or  <- flow.changePosition(req.id, req.req)
+          or  <- flow.changePosition(req)
           xs2 <- flow.getRows
         } yield {
-//          inside(or) {
-//            case Right((echoPk, rec)) =>
-//              pk shouldBe echoPk
-//
-//              xs2 diff List(pk) should contain theSameElementsInOrderAs (xs1 diff List(
-//                pk))
-//
+          inside(or) {
+            case Right((echoPk, rec)) =>
+              req.id shouldBe echoPk
+
+              xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
+                req.id))
+
+            // TODO
 //              assert(xs2.indexOf(pk) > xs2.indexOf(req.k),
 //                     s"pk $pk comes after requested pk ${req.k}")
-//          }
+          }
         }
 
       io.unsafeRunSync()
     }
   }
 
-  "a valid Change After request" should "maintain size; reflect requested order; retain old order" ignore {
+  "a valid Change After request" should "maintain size; reflect requested order; retain old order" in {
     forAll { duo: StorageAndValidChangeAfterRequest[IO, PosInt, PosInt] =>
       val StorageAndValidChangeAfterRequest(store, req) = duo
 
@@ -208,25 +168,23 @@ class LexorankSpec
       val io =
         for {
           xs1 <- flow.getRows
-          or  <- flow.changePosition(req.id, req.req)
+          or  <- flow.changePosition(req)
           xs2 <- flow.getRows
         } yield {
-//          inside(or) {
-//            case Right((echoPk, rec)) =>
-//              pk shouldBe echoPk
-//
-//              xs2 diff List(pk) should contain theSameElementsInOrderAs xs1
-//
-//              assert(xs2.indexOf(pk) > xs2.indexOf(req.k),
-//                     s"pk $pk comes after requested pk ${req.k}")
-//          }
+          inside(or) {
+            case Right((echoPk, rec)) =>
+              req.id shouldBe echoPk
+
+              xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
+                req.id))
+          }
         }
 
       io.unsafeRunSync()
     }
   }
 
-  "a valid Change Between request" should "maintain size; reflect requested order; retain old order" ignore {
+  "a valid Change Between request" should "maintain size; reflect requested order; retain old order" in {
     forAll { duo: StorageAndValidChangeBetweenRequest[IO, PosInt, PosInt] =>
       val StorageAndValidChangeBetweenRequest(store, req) = duo
 
@@ -235,18 +193,16 @@ class LexorankSpec
       val io =
         for {
           xs1 <- flow.getRows
-          or  <- flow.changePosition(req.id, req.req)
+          or  <- flow.changePosition(req)
           xs2 <- flow.getRows
         } yield {
-//          inside(or) {
-//            case Right((echoPk, rec)) =>
-//              pk shouldBe echoPk
-//
-//              xs2 diff List(pk) should contain theSameElementsInOrderAs xs1
-//
-//              assert(xs2.indexOf(pk) > xs2.indexOf(req.k),
-//                s"pk $pk comes after requested pk ${req.k}")
-//          }
+          inside(or) {
+            case Right((echoPk, rec)) =>
+              req.id shouldBe echoPk
+
+              xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
+                req.id))
+          }
         }
 
       io.unsafeRunSync()

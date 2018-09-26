@@ -88,18 +88,10 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) |> maybeMakeSpaceFor(ctx)
 
-  /**
-    * ID cannot be equal either of the provided `before` or `after`.
-    */
   // TODO is there a pathological case here where you might request a change that is already true?
-  def changePosition(id: K, req: PositionRequest[K]): F[Row Or ChangeError] =
-    if (req.after.contains(id))
-      F.pure(Left(IdWasInAfter))
-    else if (req.before.contains(id))
-      F.pure(Left(IdWasInBefore))
-    else
-      store.lockSnapshot
-        .map(doIt(id))
+  def changePosition(req: ChangeRequest[K]): F[Row Or LexorankError] =
+    store.lockSnapshot >>= attemptWriteWorkflow(req.req,
+                                                store.changeRankTo(req.id, _))
 
   // TODO these guts are totally wrong
   private def doIt(id: K)(ctx: Snapshot): Row Or ChangeError =
