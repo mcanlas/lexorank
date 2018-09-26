@@ -72,6 +72,16 @@ class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K])
       addRecord(payload, rank)
     }
 
+  def changeRankTo(id: K, rank: R): F[Row] =
+    F.delay {
+      val withNewRank = xs(id).copy(rank = rank)
+
+      xs(id) = withNewRank
+      assertUniqueRanks()
+
+      id -> withNewRank
+    }
+
   def applyUpdateInCascade(up: Update): F[Unit] =
     F.delay {
       xs(up.pk) = Record("", up.to)

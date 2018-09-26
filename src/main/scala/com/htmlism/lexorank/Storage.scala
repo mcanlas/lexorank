@@ -47,6 +47,8 @@ trait Storage[F[_], K, R] {
 
   def insertNewRecord(payload: String, rank: R): F[Row]
 
+  def changeRankTo(id: K, rank: R): F[Row]
+
   /**
     * This can be used in two places. It's first use is the granular element of a cascade; a cascade is a series of
     * these updates.
