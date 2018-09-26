@@ -62,12 +62,12 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     */
   def insertAt(payload: String,
                pos: PositionRequest[K]): F[Row Or LexorankError] =
-    store.lockSnapshot >>= attemptInsertWorkflow(
+    store.lockSnapshot >>= attemptWriteWorkflow(
       pos,
       store.insertNewRecord(payload, _))
 
-  private def attemptInsertWorkflow(pos: PositionRequest[K],
-                                    lastMile: R => F[Row])(ctx: Snapshot) =
+  private def attemptWriteWorkflow(pos: PositionRequest[K],
+                                   lastMile: R => F[Row])(ctx: Snapshot) =
     (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
       .traverse((attemptWritesToStorage(lastMile) _).tupled)
 
