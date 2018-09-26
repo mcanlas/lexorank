@@ -79,8 +79,8 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     Either.cond(maybeKeys.forall(_.nonEmpty), ctx, errors.KeyNotInContext)
   }
 
-  private def attemptWritesToStorage(payload: String)(xs: List[Update], r: R) =
-    store.makeSpace(xs) *> store.insertNewRecord(payload, r)
+  private def attemptWritesToStorage(payload: String)(xs: List[Update], newRank: R) =
+    store.makeSpace(xs) *> store.insertNewRecord(payload, newRank)
 
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) |> maybeMakeSpaceFor(ctx)
