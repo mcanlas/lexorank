@@ -64,7 +64,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
                pos: PositionRequest[K]): F[Row Or LexorankError] =
     store.lockSnapshot >>= attemptInsertWorkflow(
       pos,
-      (r: R) => store.insertNewRecord(payload, r))
+      store.insertNewRecord(payload, _))
 
   private def attemptInsertWorkflow(pos: PositionRequest[K],
                                     lastMile: R => F[Row])(ctx: Snapshot) =
