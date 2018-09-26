@@ -1,5 +1,7 @@
 package com.htmlism.lexorank
 
+import cats._
+import cats.implicits._
 import cats.effect._
 
 import org.scalacheck._
@@ -18,6 +20,40 @@ trait LexorankArbitraries {
       Gen
         .choose(1, Int.MaxValue)
         .map(PosInt.apply)
+    }
+
+  implicit def arbPositionRequest[A: Eq: Arbitrary]
+    : Arbitrary[PositionRequest[A]] =
+    Arbitrary {
+      Gen.oneOf(arbitrary[Between[A]],
+                arbitrary[Before[A]],
+                arbitrary[After[A]])
+    }
+
+  implicit def arbChange[A: Eq: Arbitrary]: Arbitrary[ChangeRequest[A]] =
+    Arbitrary {
+      val xy =
+        for {
+          x   <- arbitrary[A]
+          req <- arbitrary[PositionRequest[A]]
+        } yield (x, req)
+
+      xy.filter { case (x, req) => !req.keys.contains(x) }
+        .map { case (x, req) => ChangeRequest(x, req).right.get }
+
+    }
+
+  implicit def arbBetween[A: Eq: Arbitrary]: Arbitrary[Between[A]] =
+    Arbitrary {
+      val xy =
+        for {
+          x <- arbitrary[A]
+          y <- arbitrary[A]
+        } yield (x, y)
+
+      xy.filter { case (x, y) => x != y }
+        .map((Between.apply[A] _).tupled)
+        .map(_.right.get)
     }
 
   implicit def arbBefore[A: Arbitrary]: Arbitrary[Before[A]] =

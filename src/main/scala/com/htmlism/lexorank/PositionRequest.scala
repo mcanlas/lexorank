@@ -7,6 +7,9 @@ sealed trait PositionRequest[+A] {
   def before: Option[A]
 
   def after: Option[A]
+
+  def keys: List[A] =
+    before.toList ::: after.toList
 }
 
 /**
@@ -37,11 +40,8 @@ case class After[A](k: A) extends PositionRequest[A] {
 }
 
 object Between {
-  def apply[A](a: A, b: A)(implicit A: Eq[A]): Option[Between[A]] =
-    if (A.eqv(a, b))
-      None
-    else
-      Some(new Between[A](a, b))
+  def apply[A](a: A, b: A)(implicit A: Eq[A]): Between[A] Or LexorankError =
+    Either.cond(A.neqv(a, b), new Between[A](a, b), errors.DuplicateBetweenKeys)
 }
 
 class Between[A] private (min: A, max: A) extends PositionRequest[A] {

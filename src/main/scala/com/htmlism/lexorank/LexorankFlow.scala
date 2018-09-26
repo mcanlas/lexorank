@@ -74,14 +74,9 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     */
   private def isKeyInContext(req: PositionRequest[K],
                              ctx: Snapshot): OrLexorankError[Snapshot] = {
-    val toTest = req.before.toList ::: req.after.toList
+    val maybeKeys = req.keys.map(ctx.get)
 
-    val maybeKeys = toTest.map(ctx.get)
-
-    if (maybeKeys.exists(_.isEmpty))
-      Left(errors.KeyNotInContext)
-    else
-      Right(ctx)
+    Either.cond(maybeKeys.forall(_.nonEmpty), ctx, errors.KeyNotInContext)
   }
 
   private def attemptWritesToStorage(payload: String)(xs: List[Update], r: R) =
@@ -213,8 +208,6 @@ object Lexorank {
       implicit R: Rankable[R]): Option[K] =
     ctx.find { case (_, r) => R.eq(r, rank) }.map(_._1)
 }
-
-case class ChangeRequest[A](id: A, pos: PositionRequest[A])
 
 /**
   * `from` is not logically necessary but does make for safer, more-specific SQL statements.
