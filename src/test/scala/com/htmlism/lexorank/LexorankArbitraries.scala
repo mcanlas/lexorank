@@ -97,8 +97,10 @@ trait LexorankArbitraries {
         .map { case (s, k) => StorageAndValidInsertRequest(s, After(k)) }
     }
 
-  implicit def arbChangeBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndValidChangeRequest[F, K, R, Before]] =
+  implicit def arbChangeBefore[F[_]: Sync,
+                               K: Eq: KeyLike: Arbitrary,
+                               R: Arbitrary]
+    : Arbitrary[StorageAndValidChangeBeforeRequest[F, K, R]] =
     Arbitrary {
       val storageWithAtLeastTwo =
         Gen
@@ -111,12 +113,16 @@ trait LexorankArbitraries {
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
-        StorageAndValidChangeRequest(s, k1, Before(k2))
+        StorageAndValidChangeBeforeRequest(
+          s,
+          ChangeRequest(k1, Before(k2)).right.get)
       }
     }
 
-  implicit def arbChangeAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndValidChangeRequest[F, K, R, After]] =
+  implicit def arbChangeAfter[F[_]: Sync,
+                              K: Eq: KeyLike: Arbitrary,
+                              R: Arbitrary]
+    : Arbitrary[StorageAndValidChangeAfterRequest[F, K, R]] =
     Arbitrary {
       val storageWithAtLeastTwo =
         Gen
@@ -129,7 +135,9 @@ trait LexorankArbitraries {
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
-        StorageAndValidChangeRequest(s, k1, After(k2))
+        StorageAndValidChangeAfterRequest(
+          s,
+          ChangeRequest(k1, After(k2)).right.get)
       }
     }
 }
