@@ -22,6 +22,27 @@ trait LexorankArbitraries {
         .map(PosInt.apply)
     }
 
+  implicit def arbPositionRequest[A: Eq: Arbitrary]
+    : Arbitrary[PositionRequest[A]] =
+    Arbitrary {
+      Gen.oneOf(arbitrary[Between[A]],
+                arbitrary[Before[A]],
+                arbitrary[After[A]])
+    }
+
+  implicit def arbChange[A: Eq: Arbitrary]: Arbitrary[ChangeRequest[A]] =
+    Arbitrary {
+      val xy =
+        for {
+          x   <- arbitrary[A]
+          req <- arbitrary[PositionRequest[A]]
+        } yield (x, req)
+
+      xy.filter { case (x, req) => !req.keys.contains(x) }
+        .map { case (x, req) => ChangeRequest(x, req).right.get }
+
+    }
+
   implicit def arbBetween[A: Eq: Arbitrary]: Arbitrary[Between[A]] =
     Arbitrary {
       val xy =
