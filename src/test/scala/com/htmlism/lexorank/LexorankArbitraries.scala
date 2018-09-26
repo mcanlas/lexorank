@@ -102,14 +102,8 @@ trait LexorankArbitraries {
                                R: Arbitrary]
     : Arbitrary[StorageAndValidChangeBeforeRequest[F, K, R]] =
     Arbitrary {
-      val storageWithAtLeastTwo =
-        Gen
-          .nonEmptyMap(arbitrary[(R, String)])
-          .filter(_.size > 1)
-          .map(storage.ScalaCollectionStorage.from[F, K, R])
-
       for {
-        s  <- storageWithAtLeastTwo
+        s  <- genStorageAtLeast[F, K, R](2)
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
@@ -124,14 +118,8 @@ trait LexorankArbitraries {
                               R: Arbitrary]
     : Arbitrary[StorageAndValidChangeAfterRequest[F, K, R]] =
     Arbitrary {
-      val storageWithAtLeastTwo =
-        Gen
-          .nonEmptyMap(arbitrary[(R, String)])
-          .filter(_.size > 1)
-          .map(storage.ScalaCollectionStorage.from[F, K, R])
-
       for {
-        s  <- storageWithAtLeastTwo
+        s  <- genStorageAtLeast[F, K, R](2)
         k1 <- Gen.oneOf(s.dump.keys.toVector)
         k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       } yield {
@@ -140,4 +128,12 @@ trait LexorankArbitraries {
           ChangeRequest(k1, After(k2)).right.get)
       }
     }
+
+  private def genStorageAtLeast[F[_]: Sync,
+                                K: KeyLike: Arbitrary,
+                                R: Arbitrary](n: Int) =
+    Gen
+      .nonEmptyMap(arbitrary[(R, String)])
+      .filter(_.size >= n)
+      .map(storage.ScalaCollectionStorage.from[F, K, R])
 }
