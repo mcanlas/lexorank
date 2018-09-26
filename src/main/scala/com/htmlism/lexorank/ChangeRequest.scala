@@ -5,7 +5,7 @@ import cats._
 object ChangeRequest {
   def apply[A](id: A, req: PositionRequest[A])(
       implicit A: Eq[A]): ChangeRequest[A] Or LexorankError =
-    Either.cond(req.keys.forall(rk => implicitly[Eq[A]].neqv(id, rk)),
+    Either.cond(req.keys.forall(rk => A.neqv(id, rk)),
                 new ChangeRequest[A](id, req),
                 errors.DuplicateChangeKeys)
 }
