@@ -62,12 +62,14 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     */
   def insertAt(payload: String,
                pos: PositionRequest[K]): F[Row Or LexorankError] =
-    store.lockSnapshot >>= attemptInsertWorkflow(pos, payload)
+    store.lockSnapshot >>= attemptInsertWorkflow(
+      pos,
+      (r: R) => store.insertNewRecord(payload, r))
 
-  private def attemptInsertWorkflow(pos: PositionRequest[K], payload: String)(
-      ctx: Snapshot) =
+  private def attemptInsertWorkflow(pos: PositionRequest[K],
+                                    lastMile: R => F[Row])(ctx: Snapshot) =
     (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
-      .traverse((attemptWritesToStorage(payload) _).tupled)
+      .traverse((attemptWritesToStorage(lastMile) _).tupled)
 
   /**
     * Partially unified type annotation for IntelliJ's benefit.
@@ -79,8 +81,9 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     Either.cond(maybeKeys.forall(_.nonEmpty), ctx, errors.KeyNotInContext)
   }
 
-  private def attemptWritesToStorage(payload: String)(xs: List[Update], newRank: R) =
-    store.makeSpace(xs) *> store.insertNewRecord(payload, newRank)
+  private def attemptWritesToStorage(lastMile: R => F[Row])(xs: List[Update],
+                                                            newRank: R) =
+    store.makeSpace(xs) *> lastMile(newRank)
 
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) |> maybeMakeSpaceFor(ctx)
