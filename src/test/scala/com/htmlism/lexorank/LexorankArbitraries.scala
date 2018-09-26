@@ -129,6 +129,23 @@ trait LexorankArbitraries {
       }
     }
 
+  implicit def arbChangeBetween[F[_]: Sync,
+                                K: Eq: KeyLike: Arbitrary,
+                                R: Arbitrary]
+    : Arbitrary[StorageAndValidChangeBetweenRequest[F, K, R]] =
+    Arbitrary {
+      for {
+        s  <- genStorageAtLeast[F, K, R](3)
+        k1 <- Gen.oneOf(s.dump.keys.toVector)
+        k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
+        k3 <- Gen.oneOf((s.dump.keys.toSet - k1 - k2).toVector)
+      } yield {
+        StorageAndValidChangeBetweenRequest(
+          s,
+          ChangeRequest(k1, Between(k2, k3).right.get).right.get)
+      }
+    }
+
   private def genStorageAtLeast[F[_]: Sync,
                                 K: KeyLike: Arbitrary,
                                 R: Arbitrary](n: Int) =
