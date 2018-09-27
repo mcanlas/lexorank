@@ -75,26 +75,24 @@ trait LexorankArbitraries {
       .nonEmptyMap(arbitrary[(V, String)])
       .map(storage.ScalaCollectionStorage.from[F, K, V])
 
-  private def genInvalidInsert[F[_]: Sync,
-                               K: KeyLike: Arbitrary,
-                               R: Arbitrary] =
+  private def genValidInsert[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary] =
     for {
       s <- genNonEmptyStorage[F, K, R]
       k <- Gen.oneOf(s.dump.keys.toVector)
     } yield (s, k)
 
-  implicit def arbInsertBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndValidInsertRequest[F, K, R, Before]] =
-    Arbitrary {
-      genInvalidInsert[F, K, R]
-        .map { case (s, k) => StorageAndValidInsertRequest(s, Before(k)) }
-    }
+  private def genInsertBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary] =
+    genValidInsert[F, K, R]
+      .map { case (s, k) => StorageAndValidInsertRequest(s, Before(k)) }
 
-  implicit def arbInsertAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndValidInsertRequest[F, K, R, After]] =
+  private def genInsertAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary] =
+    genValidInsert[F, K, R]
+      .map { case (s, k) => StorageAndValidInsertRequest(s, After(k)) }
+
+  implicit def arbInsertPair[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
+    : Arbitrary[StorageAndValidInsertRequest[F, K, R]] =
     Arbitrary {
-      genInvalidInsert[F, K, R]
-        .map { case (s, k) => StorageAndValidInsertRequest(s, After(k)) }
+      Gen.oneOf(genInsertBefore[F, K, R], genInsertAfter[F, K, R]) // TODO insert between
     }
 
   implicit def arbChangePair[F[_]: Sync,

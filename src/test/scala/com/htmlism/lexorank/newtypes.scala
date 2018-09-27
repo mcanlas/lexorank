@@ -13,9 +13,9 @@ package com.htmlism.lexorank
   * @tparam K A key type
   * @tparam R A rank type
   */
-case class StorageAndValidInsertRequest[F[_], K, R, PR[_] <: PositionRequest[_]](
+case class StorageAndValidInsertRequest[F[_], K, R](
     store: storage.ScalaCollectionStorage[F, K, R],
-    req: PR[K])
+    req: PositionRequest[K])
 
 /**
   * This represents a flow instance and valid position request for that instance. The expectation is that the storage
