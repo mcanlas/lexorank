@@ -31,14 +31,6 @@ case class StorageAndValidInsertRequest[F[_], K, R, PR[_] <: PositionRequest[_]]
   * @tparam K A key type
   * @tparam R A rank type
   */
-case class StorageAndValidChangeBeforeRequest[F[_], K, R](
-    store: storage.ScalaCollectionStorage[F, K, R],
-    req: ChangeRequest[K])
-
-case class StorageAndValidChangeAfterRequest[F[_], K, R](
-    store: storage.ScalaCollectionStorage[F, K, R],
-    req: ChangeRequest[K])
-
-case class StorageAndValidChangeBetweenRequest[F[_], K, R](
+case class StorageAndValidChangeRequest[F[_], K, R](
     store: storage.ScalaCollectionStorage[F, K, R],
     req: ChangeRequest[K])

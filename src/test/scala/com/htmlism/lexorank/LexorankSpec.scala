@@ -136,9 +136,10 @@ class LexorankSpec
 
   // TODO insert between
 
-  "a valid Change Before request" should "maintain size; reflect requested order; retain old order" in {
-    forAll { duo: StorageAndValidChangeBeforeRequest[IO, PosInt, PosInt] =>
-      val StorageAndValidChangeBeforeRequest(store, req) = duo
+  "a valid Change request" should "maintain size; reflect requested order; retain old order" in {
+    forAll { duo: StorageAndValidChangeRequest[IO, PosInt, PosInt] =>
+      val StorageAndValidChangeRequest(store, req) = duo
+      println(req)
 
       val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
@@ -155,59 +156,11 @@ class LexorankSpec
               xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
                 req.id))
 
-            // TODO
+            // TODO test all cases
+
+            // TODO test rank of changed element more specifically
 //              assert(xs2.indexOf(pk) > xs2.indexOf(req.k),
 //                     s"pk $pk comes after requested pk ${req.k}")
-          }
-        }
-
-      io.unsafeRunSync()
-    }
-  }
-
-  "a valid Change After request" should "maintain size; reflect requested order; retain old order" in {
-    forAll { duo: StorageAndValidChangeAfterRequest[IO, PosInt, PosInt] =>
-      val StorageAndValidChangeAfterRequest(store, req) = duo
-
-      val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
-
-      val io =
-        for {
-          xs1 <- flow.getRows
-          or  <- flow.changePosition(req)
-          xs2 <- flow.getRows
-        } yield {
-          inside(or) {
-            case Right((echoPk, _)) =>
-              req.id shouldBe echoPk
-
-              xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
-                req.id))
-          }
-        }
-
-      io.unsafeRunSync()
-    }
-  }
-
-  "a valid Change Between request" should "maintain size; reflect requested order; retain old order" in {
-    forAll { duo: StorageAndValidChangeBetweenRequest[IO, PosInt, PosInt] =>
-      val StorageAndValidChangeBetweenRequest(store, req) = duo
-
-      val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
-
-      val io =
-        for {
-          xs1 <- flow.getRows
-          or  <- flow.changePosition(req)
-          xs2 <- flow.getRows
-        } yield {
-          inside(or) {
-            case Right((echoPk, _)) =>
-              req.id shouldBe echoPk
-
-              xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
-                req.id))
           }
         }
 

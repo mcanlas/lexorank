@@ -97,53 +97,50 @@ trait LexorankArbitraries {
         .map { case (s, k) => StorageAndValidInsertRequest(s, After(k)) }
     }
 
-  implicit def arbChangeBefore[F[_]: Sync,
-                               K: Eq: KeyLike: Arbitrary,
-                               R: Arbitrary]
-    : Arbitrary[StorageAndValidChangeBeforeRequest[F, K, R]] =
+  implicit def arbChangePair[F[_]: Sync,
+                             K: Eq: KeyLike: Arbitrary,
+                             R: Arbitrary]
+    : Arbitrary[StorageAndValidChangeRequest[F, K, R]] =
     Arbitrary {
-      for {
-        s  <- genStorageAtLeast[F, K, R](2)
-        k1 <- Gen.oneOf(s.dump.keys.toVector)
-        k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
-      } yield {
-        StorageAndValidChangeBeforeRequest(
-          s,
-          ChangeRequest(k1, Before(k2)).right.get)
-      }
+      Gen.oneOf(genChangeBefore[F, K, R],
+                genChangeAfter[F, K, R],
+                genChangeBetween[F, K, R])
     }
 
-  implicit def arbChangeAfter[F[_]: Sync,
+  private def genChangeBefore[F[_]: Sync,
                               K: Eq: KeyLike: Arbitrary,
-                              R: Arbitrary]
-    : Arbitrary[StorageAndValidChangeAfterRequest[F, K, R]] =
-    Arbitrary {
-      for {
-        s  <- genStorageAtLeast[F, K, R](2)
-        k1 <- Gen.oneOf(s.dump.keys.toVector)
-        k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
-      } yield {
-        StorageAndValidChangeAfterRequest(
-          s,
-          ChangeRequest(k1, After(k2)).right.get)
-      }
+                              R: Arbitrary] =
+    for {
+      s  <- genStorageAtLeast[F, K, R](2)
+      k1 <- Gen.oneOf(s.dump.keys.toVector)
+      k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
+    } yield {
+      StorageAndValidChangeRequest(s, ChangeRequest(k1, Before(k2)).right.get)
     }
 
-  implicit def arbChangeBetween[F[_]: Sync,
-                                K: Eq: KeyLike: Arbitrary,
-                                R: Arbitrary]
-    : Arbitrary[StorageAndValidChangeBetweenRequest[F, K, R]] =
-    Arbitrary {
-      for {
-        s  <- genStorageAtLeast[F, K, R](3)
-        k1 <- Gen.oneOf(s.dump.keys.toVector)
-        k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
-        k3 <- Gen.oneOf((s.dump.keys.toSet - k1 - k2).toVector)
-      } yield {
-        StorageAndValidChangeBetweenRequest(
-          s,
-          ChangeRequest(k1, Between(k2, k3).right.get).right.get)
-      }
+  private def genChangeAfter[F[_]: Sync,
+                             K: Eq: KeyLike: Arbitrary,
+                             R: Arbitrary] =
+    for {
+      s  <- genStorageAtLeast[F, K, R](2)
+      k1 <- Gen.oneOf(s.dump.keys.toVector)
+      k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
+    } yield {
+      StorageAndValidChangeRequest(s, ChangeRequest(k1, After(k2)).right.get)
+    }
+
+  private def genChangeBetween[F[_]: Sync,
+                               K: Eq: KeyLike: Arbitrary,
+                               R: Arbitrary] =
+    for {
+      s  <- genStorageAtLeast[F, K, R](3)
+      k1 <- Gen.oneOf(s.dump.keys.toVector)
+      k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
+      k3 <- Gen.oneOf((s.dump.keys.toSet - k1 - k2).toVector)
+    } yield {
+      StorageAndValidChangeRequest(
+        s,
+        ChangeRequest(k1, Between(k2, k3).right.get).right.get)
     }
 
   private def genStorageAtLeast[F[_]: Sync,

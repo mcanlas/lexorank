@@ -10,4 +10,7 @@ object ChangeRequest {
                 errors.DuplicateChangeKeys)
 }
 
-class ChangeRequest[A] private (val id: A, val req: PositionRequest[A])
+class ChangeRequest[A] private (val id: A, val req: PositionRequest[A]) {
+  override def toString: String =
+    s"ChangeRequest(id: $id, req: ${req.toString})"
+}
