@@ -50,4 +50,6 @@ class Between[A] private (min: A, max: A) extends PositionRequest[A] {
 
   def before: Option[A] =
     Some(max)
+
+  override def toString: String = s"Between($min, $max)"
 }

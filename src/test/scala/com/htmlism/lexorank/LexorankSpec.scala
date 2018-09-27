@@ -94,12 +94,15 @@ class LexorankSpec
             case Right((newPk, rec)) =>
               xs2 diff List(newPk) should contain theSameElementsInOrderAs xs1
 
-              // TODO
-//                assert(xs2.indexOf(newPk) < xs2.indexOf(req.k),
-//                       s"new pk $newPk comes before requested pk ${req.k}")
-//
-//                assert(xs2.indexOf(newPk) > xs2.indexOf(req.k),
-//                  s"new pk $newPk comes after requested pk ${req.k}")
+              req.before.foreach { k =>
+                assert(xs2.indexOf(newPk) < xs2.indexOf(k),
+                       s"new pk $newPk comes before requested pk $k")
+              }
+
+              req.after.foreach { k =>
+                assert(xs2.indexOf(newPk) > xs2.indexOf(k),
+                       s"new pk $newPk comes after requested pk $k")
+              }
 
               rec.name shouldBe s
           }
