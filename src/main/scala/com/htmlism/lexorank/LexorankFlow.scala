@@ -93,15 +93,6 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     store.lockSnapshot >>= attemptWriteWorkflow(req.req,
                                                 store.changeRankTo(req.id, _))
 
-  // TODO these guts are totally wrong
-  private def doIt(id: K)(ctx: Snapshot): Row Or ChangeError =
-    ctx
-      .get(id)
-      .fold[Row Or ChangeError](Left(IdDoesNotExistInStorage)) { _ =>
-        // TODO nonsensical
-        Right(id -> Record("", RG.anywhere))
-      }
-
   private def maybeMakeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
     makeSpaceForReally(ctx, Nil, rank, None)
