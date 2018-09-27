@@ -6,7 +6,6 @@ trait Determinism {
       def between(x: PosInt, y: PosInt): PosInt =
         PosInt {
           val min = Math.min(x.n, y.n)
-          val max = Math.max(x.n, y.n)
 
           min + 1
         }
