@@ -14,9 +14,8 @@ class RequestValidationSpec
     with Inside
     with Determinism {
   private val emptyFlow =
-    new LexorankFlow[IO, PosInt, PosInt](
-      new storage.ScalaCollectionStorage[IO, PosInt, PosInt],
-      rgPosInt)
+    new LexorankFlow[IO, PosInt, PosInt](new storage.ScalaCollectionStorage[IO, PosInt, PosInt],
+                                         rgPosInt)
 
   "invalid insert before requests" should "return a key error" in {
     forAll { req: Before[PosInt] =>

@@ -21,12 +21,9 @@ trait LexorankArbitraries {
         .map(PosInt.apply)
     }
 
-  implicit def arbPositionRequest[A: Eq: Arbitrary]
-    : Arbitrary[PositionRequest[A]] =
+  implicit def arbPositionRequest[A: Eq: Arbitrary]: Arbitrary[PositionRequest[A]] =
     Arbitrary {
-      Gen.oneOf(arbitrary[Between[A]],
-                arbitrary[Before[A]],
-                arbitrary[After[A]])
+      Gen.oneOf(arbitrary[Between[A]], arbitrary[Before[A]], arbitrary[After[A]])
     }
 
   implicit def arbChange[A: Eq: Arbitrary]: Arbitrary[ChangeRequest[A]] =
@@ -67,9 +64,7 @@ trait LexorankArbitraries {
       genNonEmptyStorage[IO, K, V]
     }
 
-  private def genNonEmptyStorage[F[_]: Sync,
-                                 K: Arbitrary: KeyLike,
-                                 V: Arbitrary]
+  private def genNonEmptyStorage[F[_]: Sync, K: Arbitrary: KeyLike, V: Arbitrary]
     : Gen[storage.ScalaCollectionStorage[F, K, V]] =
     Gen
       .nonEmptyMap(arbitrary[(V, String)])
@@ -87,38 +82,26 @@ trait LexorankArbitraries {
       k <- Gen.oneOf(s.dump.keys.toVector)
     } yield StorageAndValidInsertRequest(s, After(k))
 
-  private def genInsertBetween[F[_]: Sync,
-                               K: Eq: KeyLike: Arbitrary,
-                               R: Arbitrary] =
+  private def genInsertBetween[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary] =
     for {
       s  <- genStorageAtLeast[F, K, R](2)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
     } yield StorageAndValidInsertRequest(s, Between(k1, k2).right.get)
 
-  implicit def arbInsertPair[F[_]: Sync,
-                             K: Eq: KeyLike: Arbitrary,
-                             R: Arbitrary]
+  implicit def arbInsertPair[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary]
     : Arbitrary[StorageAndValidInsertRequest[F, K, R]] =
     Arbitrary {
-      Gen.oneOf(genInsertBefore[F, K, R],
-                genInsertAfter[F, K, R],
-                genInsertBetween[F, K, R])
+      Gen.oneOf(genInsertBefore[F, K, R], genInsertAfter[F, K, R], genInsertBetween[F, K, R])
     }
 
-  implicit def arbChangePair[F[_]: Sync,
-                             K: Eq: KeyLike: Arbitrary,
-                             R: Arbitrary]
+  implicit def arbChangePair[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary]
     : Arbitrary[StorageAndValidChangeRequest[F, K, R]] =
     Arbitrary {
-      Gen.oneOf(genChangeBefore[F, K, R],
-                genChangeAfter[F, K, R],
-                genChangeBetween[F, K, R])
+      Gen.oneOf(genChangeBefore[F, K, R], genChangeAfter[F, K, R], genChangeBetween[F, K, R])
     }
 
-  private def genChangeBefore[F[_]: Sync,
-                              K: Eq: KeyLike: Arbitrary,
-                              R: Arbitrary] =
+  private def genChangeBefore[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary] =
     for {
       s  <- genStorageAtLeast[F, K, R](2)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
@@ -127,9 +110,7 @@ trait LexorankArbitraries {
       StorageAndValidChangeRequest(s, ChangeRequest(k1, Before(k2)).right.get)
     }
 
-  private def genChangeAfter[F[_]: Sync,
-                             K: Eq: KeyLike: Arbitrary,
-                             R: Arbitrary] =
+  private def genChangeAfter[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary] =
     for {
       s  <- genStorageAtLeast[F, K, R](2)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
@@ -138,23 +119,17 @@ trait LexorankArbitraries {
       StorageAndValidChangeRequest(s, ChangeRequest(k1, After(k2)).right.get)
     }
 
-  private def genChangeBetween[F[_]: Sync,
-                               K: Eq: KeyLike: Arbitrary,
-                               R: Arbitrary] =
+  private def genChangeBetween[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary] =
     for {
       s  <- genStorageAtLeast[F, K, R](3)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       k3 <- Gen.oneOf((s.dump.keys.toSet - k1 - k2).toVector)
     } yield {
-      StorageAndValidChangeRequest(
-        s,
-        ChangeRequest(k1, Between(k2, k3).right.get).right.get)
+      StorageAndValidChangeRequest(s, ChangeRequest(k1, Between(k2, k3).right.get).right.get)
     }
 
-  private def genStorageAtLeast[F[_]: Sync,
-                                K: KeyLike: Arbitrary,
-                                R: Arbitrary](n: Int) =
+  private def genStorageAtLeast[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary](n: Int) =
     Gen
       .nonEmptyMap(arbitrary[(R, String)])
       .filter(_.size >= n)

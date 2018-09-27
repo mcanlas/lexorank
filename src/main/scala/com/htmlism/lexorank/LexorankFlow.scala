@@ -22,10 +22,9 @@ import mouse.all._
   * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
   */
 // TODO differentiate between outer effect type F and database IO type G
-class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
-    implicit F: Monad[F],
-    R: Rankable[R],
-    O: Ordering[R]) {
+class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(implicit F: Monad[F],
+                                                                              R: Rankable[R],
+                                                                              O: Ordering[R]) {
 
   /**
     * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
@@ -60,29 +59,23 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
   /**
     * A public method for attempting to insert an anonymous payload at some position.
     */
-  def insertAt(payload: String,
-               pos: PositionRequest[K]): F[Row Or LexorankError] =
-    store.lockSnapshot >>= attemptWriteWorkflow(
-      pos,
-      store.insertNewRecord(payload, _))
+  def insertAt(payload: String, pos: PositionRequest[K]): F[Row Or LexorankError] =
+    store.lockSnapshot >>= attemptWriteWorkflow(pos, store.insertNewRecord(payload, _))
 
-  private def attemptWriteWorkflow(pos: PositionRequest[K],
-                                   lastMile: R => F[Row])(ctx: Snapshot) =
+  private def attemptWriteWorkflow(pos: PositionRequest[K], lastMile: R => F[Row])(ctx: Snapshot) =
     (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
       .traverse((attemptWritesToStorage(lastMile) _).tupled)
 
   /**
     * Partially unified type annotation for IntelliJ's benefit.
     */
-  private def isKeyInContext(req: PositionRequest[K],
-                             ctx: Snapshot): OrLexorankError[Snapshot] = {
+  private def isKeyInContext(req: PositionRequest[K], ctx: Snapshot): OrLexorankError[Snapshot] = {
     val maybeKeys = req.keys.map(ctx.get)
 
     Either.cond(maybeKeys.forall(_.nonEmpty), ctx, errors.KeyNotInContext)
   }
 
-  private def attemptWritesToStorage(lastMile: R => F[Row])(xs: List[Update],
-                                                            newRank: R) =
+  private def attemptWritesToStorage(lastMile: R => F[Row])(xs: List[Update], newRank: R) =
     store.makeSpace(xs) *> lastMile(newRank)
 
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
@@ -90,8 +83,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
 
   // TODO is there a pathological case here where you might request a change that is already true?
   def changePosition(req: ChangeRequest[K]): F[Row Or LexorankError] =
-    store.lockSnapshot >>= attemptWriteWorkflow(req.req,
-                                                store.changeRankTo(req.id, _))
+    store.lockSnapshot >>= attemptWriteWorkflow(req.req, store.changeRankTo(req.id, _))
 
   private def maybeMakeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
@@ -120,11 +112,11 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
     * were already "taken".
     */
   @tailrec
-  private def makeSpaceForReally(ctx: Snapshot,
-                                 updates: List[Update],
-                                 rank: R,
-                                 previousStrategy: Option[CollisionStrategy])
-    : List[Update] Or errors.OverflowError =
+  private def makeSpaceForReally(
+      ctx: Snapshot,
+      updates: List[Update],
+      rank: R,
+      previousStrategy: Option[CollisionStrategy]): List[Update] Or errors.OverflowError =
     Lexorank.rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat =
@@ -144,10 +136,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
 
             val butFirstDo = RankUpdate(k, rank, newRankForCollision)
 
-            makeSpaceForReally(ctx,
-                               butFirstDo :: updates,
-                               newRankForCollision,
-                               Some(strat))
+            makeSpaceForReally(ctx, butFirstDo :: updates, newRankForCollision, Some(strat))
         }
 
       case None =>
@@ -180,8 +169,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
 }
 
 object Lexorank {
-  def rankCollidesAt[K, R](rank: R)(ctx: Map[K, R])(
-      implicit R: Rankable[R]): Option[K] =
+  def rankCollidesAt[K, R](rank: R)(ctx: Map[K, R])(implicit R: Rankable[R]): Option[K] =
     ctx.find { case (_, r) => R.eq(r, rank) }.map(_._1)
 }
 

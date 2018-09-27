@@ -25,8 +25,7 @@ object ScalaCollectionStorage {
     * @tparam K A key type
     * @tparam R A rank type
     */
-  def from[F[_]: Sync, K: KeyLike, R](
-      xs: Map[R, String]): ScalaCollectionStorage[F, K, R] = {
+  def from[F[_]: Sync, K: KeyLike, R](xs: Map[R, String]): ScalaCollectionStorage[F, K, R] = {
     val store = new ScalaCollectionStorage[F, K, R]
 
     xs.foreach {

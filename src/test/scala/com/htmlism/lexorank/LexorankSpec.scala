@@ -77,34 +77,33 @@ class LexorankSpec
   // i.e. previous sort was maintained and requested sort is also satisified
 
   "a valid Insert request" should "increment size; reflect requested order; retain old order" in {
-    forAll {
-      (pair: StorageAndValidInsertRequest[IO, PosInt, PosInt], s: String) =>
-        val StorageAndValidInsertRequest(store, req) = pair
+    forAll { (pair: StorageAndValidInsertRequest[IO, PosInt, PosInt], s: String) =>
+      val StorageAndValidInsertRequest(store, req) = pair
 
-        val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
+      val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
-        val io =
-          for {
-            xs1 <- flow.getRows
-            or  <- flow.insertAt(s, req)
-            xs2 <- flow.getRows
-          } yield {
-            inside(or) {
-              case Right((newPk, rec)) =>
-                xs2 diff List(newPk) should contain theSameElementsInOrderAs xs1
+      val io =
+        for {
+          xs1 <- flow.getRows
+          or  <- flow.insertAt(s, req)
+          xs2 <- flow.getRows
+        } yield {
+          inside(or) {
+            case Right((newPk, rec)) =>
+              xs2 diff List(newPk) should contain theSameElementsInOrderAs xs1
 
-                // TODO
+              // TODO
 //                assert(xs2.indexOf(newPk) < xs2.indexOf(req.k),
 //                       s"new pk $newPk comes before requested pk ${req.k}")
 //
 //                assert(xs2.indexOf(newPk) > xs2.indexOf(req.k),
 //                  s"new pk $newPk comes after requested pk ${req.k}")
 
-                rec.name shouldBe s
-            }
+              rec.name shouldBe s
           }
+        }
 
-        io.unsafeRunSync()
+      io.unsafeRunSync()
     }
   }
 
@@ -127,8 +126,7 @@ class LexorankSpec
             case Right((echoPk, _)) =>
               req.id shouldBe echoPk
 
-              xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
-                req.id))
+              xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(req.id))
 
             // TODO test all cases
 
