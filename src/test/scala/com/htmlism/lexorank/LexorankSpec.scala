@@ -6,6 +6,8 @@ import cats.effect._
 import org.scalatest._
 import org.scalatest.prop._
 
+import com.htmlism.lexorank.storage.InMemoryStorage
+
 class LexorankSpec
     extends FlatSpec
     with Matchers
@@ -14,7 +16,7 @@ class LexorankSpec
     with LexorankArbitraries
     with Determinism {
   "insertion anywhere" should "always be successful given an int-sized store" in {
-    forAll { store: storage.ScalaCollectionStorage[IO, PosInt, PosInt] =>
+    forAll { store: InMemoryStorage[IO, PosInt, PosInt] =>
       val previousSize = store.size
       val flow         = new LexorankFlow(store, rgPosInt)
 
@@ -29,7 +31,7 @@ class LexorankSpec
   "insertion anywhere given always say min" should "always work up to the key space limit" in {
     val limit = 10
 
-    val store = storage.ScalaCollectionStorage.empty[IO, PosInt, UpToTen]
+    val store = InMemoryStorage.empty[IO, PosInt, UpToTen]
     val flow  = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
@@ -61,7 +63,7 @@ class LexorankSpec
     * behind.
     */
   "insertion anywhere" should "error given a crowded key space" ignore {
-    forAll { store: storage.ScalaCollectionStorage[IO, PosInt, UpToTen] =>
+    forAll { store: InMemoryStorage[IO, PosInt, UpToTen] =>
       val previousSize = store.size
       val flow         = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 

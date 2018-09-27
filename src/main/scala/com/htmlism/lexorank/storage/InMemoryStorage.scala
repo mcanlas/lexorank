@@ -4,7 +4,7 @@ package storage
 import cats.implicits._
 import cats.effect._
 
-object ScalaCollectionStorage {
+object InMemoryStorage {
 
   /**
     * Factory from nothing.
@@ -13,7 +13,7 @@ object ScalaCollectionStorage {
     * @tparam K A key type
     * @tparam R A rank type
     */
-  def empty[F[_]: Sync, K: KeyLike, R]: ScalaCollectionStorage[F, K, R] =
+  def empty[F[_]: Sync, K: KeyLike, R]: InMemoryStorage[F, K, R] =
     from(Map.empty)
 
   /**
@@ -25,8 +25,8 @@ object ScalaCollectionStorage {
     * @tparam K A key type
     * @tparam R A rank type
     */
-  def from[F[_]: Sync, K: KeyLike, R](xs: Map[R, String]): ScalaCollectionStorage[F, K, R] = {
-    val store = new ScalaCollectionStorage[F, K, R]
+  def from[F[_]: Sync, K: KeyLike, R](xs: Map[R, String]): InMemoryStorage[F, K, R] = {
+    val store = new InMemoryStorage[F, K, R]
 
     xs.foreach {
       case (r, s) =>
@@ -45,8 +45,7 @@ object ScalaCollectionStorage {
   * @tparam K The type for primary keys in this storage. Usually `Int`
   * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
   */
-class ScalaCollectionStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K])
-    extends Storage[F, K, R] {
+class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends Storage[F, K, R] {
   private var pkSeed: K =
     K.first
 

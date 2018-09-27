@@ -6,6 +6,8 @@ import cats.effect._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 
+import com.htmlism.lexorank.storage.InMemoryStorage
+
 trait LexorankArbitraries {
   implicit val upToTen: Arbitrary[UpToTen] =
     Arbitrary {
@@ -59,16 +61,16 @@ trait LexorankArbitraries {
     Arbitrary { arbitrary[A].map(After.apply) }
 
   implicit def arbStorage[K: Arbitrary: KeyLike, V: Arbitrary: Rankable]
-    : Arbitrary[storage.ScalaCollectionStorage[IO, K, V]] =
+    : Arbitrary[InMemoryStorage[IO, K, V]] =
     Arbitrary {
       genNonEmptyStorage[IO, K, V]
     }
 
   private def genNonEmptyStorage[F[_]: Sync, K: Arbitrary: KeyLike, V: Arbitrary]
-    : Gen[storage.ScalaCollectionStorage[F, K, V]] =
+    : Gen[InMemoryStorage[F, K, V]] =
     Gen
       .nonEmptyMap(arbitrary[(V, String)])
-      .map(storage.ScalaCollectionStorage.from[F, K, V])
+      .map(InMemoryStorage.from[F, K, V])
 
   private def genInsertBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary] =
     for {
@@ -133,5 +135,5 @@ trait LexorankArbitraries {
     Gen
       .nonEmptyMap(arbitrary[(R, String)])
       .filter(_.size >= n)
-      .map(storage.ScalaCollectionStorage.from[F, K, R])
+      .map(InMemoryStorage.from[F, K, R])
 }
