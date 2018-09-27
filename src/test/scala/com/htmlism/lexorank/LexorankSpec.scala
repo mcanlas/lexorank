@@ -96,6 +96,8 @@ class LexorankSpec
 
                 assert(xs2.indexOf(newPk) < xs2.indexOf(req.k),
                        s"new pk $newPk comes before requested pk ${req.k}")
+
+                rec.name shouldBe s
             }
           }
 
@@ -123,12 +125,16 @@ class LexorankSpec
 
                 assert(xs2.indexOf(newPk) > xs2.indexOf(req.k),
                        s"new pk $newPk comes after requested pk ${req.k}")
+
+                rec.name shouldBe s
             }
           }
 
         io.unsafeRunSync()
     }
   }
+
+  // TODO insert between
 
   "a valid Change Before request" should "maintain size; reflect requested order; retain old order" in {
     forAll { duo: StorageAndValidChangeBeforeRequest[IO, PosInt, PosInt] =>
@@ -143,7 +149,7 @@ class LexorankSpec
           xs2 <- flow.getRows
         } yield {
           inside(or) {
-            case Right((echoPk, rec)) =>
+            case Right((echoPk, _)) =>
               req.id shouldBe echoPk
 
               xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
@@ -172,7 +178,7 @@ class LexorankSpec
           xs2 <- flow.getRows
         } yield {
           inside(or) {
-            case Right((echoPk, rec)) =>
+            case Right((echoPk, _)) =>
               req.id shouldBe echoPk
 
               xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
@@ -197,7 +203,7 @@ class LexorankSpec
           xs2 <- flow.getRows
         } yield {
           inside(or) {
-            case Right((echoPk, rec)) =>
+            case Right((echoPk, _)) =>
               req.id shouldBe echoPk
 
               xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(
