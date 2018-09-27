@@ -2,52 +2,38 @@ package com.htmlism.lexorank
 
 import cats._
 
-// TODO this probably doesn't need to be a whole ADT
 sealed trait PositionRequest[+A] {
-  def before: Option[A]
-
-  def after: Option[A]
-
-  def keys: List[A] =
-    before.toList ::: after.toList
+  def keys: List[A]
 }
 
 /**
   * Not used often. Could be used when creating the first row.
   */
 case object Anywhere extends PositionRequest[Nothing] {
-  def after: Option[Nothing] =
-    None
-
-  def before: Option[Nothing] =
-    None
+  def keys: List[Nothing] = Nil
 }
 
 case class Before[A](k: A) extends PositionRequest[A] {
-  def after: Option[A] =
-    None
-
-  def before: Option[A] =
-    Some(k)
+  def keys: List[A] = List(k)
 }
 
 case class After[A](k: A) extends PositionRequest[A] {
-  def after: Option[A] =
-    Some(k)
-
-  def before: Option[A] =
-    None
+  def keys: List[A] = List(k)
 }
 
 object Between {
   def apply[A](a: A, b: A)(implicit A: Eq[A]): Between[A] Or LexorankError =
     Either.cond(A.neqv(a, b), new Between[A](a, b), errors.DuplicateBetweenKeys)
+
+  def unapply[A](x: Between[A]): Option[(A, A)] =
+    Some(x.a -> x.b)
 }
 
-class Between[A] private (min: A, max: A) extends PositionRequest[A] {
-  def after: Option[A] =
-    Some(min)
+/**
+  * The keys are unordered. The "first" key need not come first in the constructor.
+  */
+class Between[A] private (val a: A, val b: A) extends PositionRequest[A] {
+  def keys: List[A] = List(a, b)
 
-  def before: Option[A] =
-    Some(max)
+  override def toString: String = s"Between($a, $b)"
 }

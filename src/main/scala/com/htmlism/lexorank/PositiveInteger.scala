@@ -1,8 +1,13 @@
 package com.htmlism.lexorank
 
+import cats._
+
 object PositiveInteger {
   implicit val posIntOrdering: Ordering[PosInt] =
     Ordering.by(_.n)
+
+  implicit val postIntEq: Eq[PosInt] =
+    Eq.fromUniversalEquals
 }
 
 /**

@@ -6,6 +6,8 @@ import cats.effect._
 import org.scalatest._
 import org.scalatest.prop._
 
+import com.htmlism.lexorank.storage.InMemoryStorage
+
 class LexorankSpec
     extends FlatSpec
     with Matchers
@@ -13,49 +15,8 @@ class LexorankSpec
     with GeneratorDrivenPropertyChecks
     with LexorankArbitraries
     with Determinism {
-  it should "domain error if pk exists in `after`" in {
-    forAll { key: PosInt =>
-      val ret =
-        new LexorankFlow[IO, PosInt, PosInt](
-          storage.ScalaCollectionStorage.empty,
-          rgPosInt)
-          .changePosition(key, After(key))
-          .unsafeRunSync()
-
-      ret shouldBe Left(IdWasInAfter)
-    }
-  }
-
-  it should "domain error if pk exists in `before`" in {
-    forAll { key: PosInt =>
-      val ret =
-        new LexorankFlow[IO, PosInt, PosInt](
-          storage.ScalaCollectionStorage.empty,
-          rgPosInt)
-          .changePosition(key, Before(key))
-          .unsafeRunSync()
-
-      ret shouldBe Left(IdWasInBefore)
-    }
-  }
-
-  it should "domain error if pk does not exist" in {
-    forAll { (keyA: PosInt, keyB: PosInt) =>
-      whenever(keyA != keyB) {
-        val ret =
-          new LexorankFlow[IO, PosInt, PosInt](
-            storage.ScalaCollectionStorage.empty,
-            rgPosInt)
-            .changePosition(keyA, After(keyB))
-            .unsafeRunSync()
-
-        ret shouldBe Left(IdDoesNotExistInStorage)
-      }
-    }
-  }
-
   "insertion anywhere" should "always be successful given an int-sized store" in {
-    forAll { store: storage.ScalaCollectionStorage[IO, PosInt, PosInt] =>
+    forAll { store: InMemoryStorage[IO, PosInt, PosInt] =>
       val previousSize = store.size
       val flow         = new LexorankFlow(store, rgPosInt)
 
@@ -70,7 +31,7 @@ class LexorankSpec
   "insertion anywhere given always say min" should "always work up to the key space limit" in {
     val limit = 10
 
-    val store = storage.ScalaCollectionStorage.empty[IO, PosInt, UpToTen]
+    val store = InMemoryStorage.empty[IO, PosInt, UpToTen]
     val flow  = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
@@ -102,7 +63,7 @@ class LexorankSpec
     * behind.
     */
   "insertion anywhere" should "error given a crowded key space" ignore {
-    forAll { store: storage.ScalaCollectionStorage[IO, PosInt, UpToTen] =>
+    forAll { store: InMemoryStorage[IO, PosInt, UpToTen] =>
       val previousSize = store.size
       val flow         = new LexorankFlow(store, UpToTen.AlwaysSayMin)
 
@@ -117,81 +78,41 @@ class LexorankSpec
   // TODO for any given state, property test that INSERT and CHANGE requests retain their properties
   // i.e. previous sort was maintained and requested sort is also satisified
 
-  "a valid Insert Before request" should "increment size; reflect requested order; retain old order" in {
-    forAll {
-      (pair: StorageAndValidInsertRequest[IO, PosInt, PosInt, Before],
-       s: String) =>
-        val StorageAndValidInsertRequest(store, req) = pair
-
-        val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
-
-        val io =
-          for {
-            xs1 <- flow.getRows
-            or  <- flow.insertAt(s, req)
-            xs2 <- flow.getRows
-          } yield {
-            inside(or) {
-              case Right((newPk, rec)) =>
-                xs2 diff List(newPk) should contain theSameElementsInOrderAs xs1
-
-                assert(xs2.indexOf(newPk) < xs2.indexOf(req.k),
-                       s"new pk $newPk comes before requested pk ${req.k}")
-            }
-          }
-
-        io.unsafeRunSync()
-    }
-  }
-
-  "a valid Insert After request" should "increment size; reflect requested order; retain old order" in {
-    forAll {
-      (pair: StorageAndValidInsertRequest[IO, PosInt, PosInt, After],
-       s: String) =>
-        val StorageAndValidInsertRequest(store, req) = pair
-
-        val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
-
-        val io =
-          for {
-            xs1 <- flow.getRows
-            or  <- flow.insertAt(s, req)
-            xs2 <- flow.getRows
-          } yield {
-            inside(or) {
-              case Right((newPk, rec)) =>
-                xs2 diff List(newPk) should contain theSameElementsInOrderAs xs1
-
-                assert(xs2.indexOf(newPk) > xs2.indexOf(req.k),
-                       s"new pk $newPk comes after requested pk ${req.k}")
-            }
-          }
-
-        io.unsafeRunSync()
-    }
-  }
-
-  "a valid Change Before request" should "maintain size; reflect requested order; retain old order" ignore {
-    forAll { trio: StorageAndValidChangeRequest[IO, PosInt, PosInt, Before] =>
-      val StorageAndValidChangeRequest(store, pk, req) = trio
+  "a valid Insert request" should "increment size; reflect requested order; retain old order" in {
+    forAll { (pair: StorageAndValidInsertRequest[IO, PosInt, PosInt], s: String) =>
+      val StorageAndValidInsertRequest(store, req) = pair
 
       val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
       val io =
         for {
           xs1 <- flow.getRows
-          or  <- flow.changePosition(pk, req)
+          or  <- flow.insertAt(s, req)
           xs2 <- flow.getRows
         } yield {
           inside(or) {
-            case Right((echoPk, rec)) =>
-              pk shouldBe echoPk
+            case Right((newPk, rec)) =>
+              xs2 diff List(newPk) should contain theSameElementsInOrderAs xs1
 
-              xs2 diff List(pk) should contain theSameElementsInOrderAs (xs1 diff List(
-                pk))
+              req match {
+                case Before(k) =>
+                  assert(xs2.indexOf(newPk) < xs2.indexOf(k), s"new pk $newPk comes before requested pk $k")
 
-              assert(xs2.indexOf(pk) > xs2.indexOf(req.k),
-                     s"pk $pk comes after requested pk ${req.k}")
+                case After(k) =>
+                  assert(xs2.indexOf(newPk) > xs2.indexOf(k), s"new pk $newPk comes after requested pk $k")
+
+                case Between(x, y) =>
+                  val xFirst = xs2.indexOf(newPk) > xs2.indexOf(x) && xs2.indexOf(newPk) < xs2
+                    .indexOf(y)
+                  val yFirst = xs2.indexOf(newPk) > xs2.indexOf(y) && xs2.indexOf(newPk) < xs2
+                    .indexOf(x)
+
+                  assert(xFirst || yFirst, s"new pk $newPk is somewhere between $x and $y, unordered")
+
+                case Anywhere =>
+              }
+
+              rec.name shouldBe s
           }
         }
 
@@ -199,26 +120,41 @@ class LexorankSpec
     }
   }
 
-  "a valid Insert After request" should "maintain size; reflect requested order; retain old order" ignore {
-    forAll { trio: StorageAndValidChangeRequest[IO, PosInt, PosInt, After] =>
-      val StorageAndValidChangeRequest(store, pk, req) = trio
+  "a valid Change request" should "maintain size; reflect requested order; retain old order" in {
+    forAll { duo: StorageAndValidChangeRequest[IO, PosInt, PosInt] =>
+      val StorageAndValidChangeRequest(store, chReq) = duo
 
       val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
       val io =
         for {
           xs1 <- flow.getRows
-          or  <- flow.changePosition(pk, req)
+          or  <- flow.changePosition(chReq)
           xs2 <- flow.getRows
         } yield {
           inside(or) {
-            case Right((echoPk, rec)) =>
-              pk shouldBe echoPk
+            case Right((echoPk, _)) =>
+              chReq.id shouldBe echoPk
 
-              xs2 diff List(pk) should contain theSameElementsInOrderAs xs1
+              xs1 diff List(chReq.id) should contain theSameElementsInOrderAs (xs2 diff List(chReq.id))
 
-              assert(xs2.indexOf(pk) > xs2.indexOf(req.k),
-                     s"pk $pk comes after requested pk ${req.k}")
+              chReq.req match {
+                case Before(k) =>
+                  assert(xs2.indexOf(echoPk) < xs2.indexOf(k), s"pk $echoPk comes before requested pk $k")
+
+                case After(k) =>
+                  assert(xs2.indexOf(echoPk) > xs2.indexOf(k), s"pk $echoPk comes after requested pk $k")
+
+                case Between(x, y) =>
+                  val xFirst = xs2.indexOf(echoPk) > xs2.indexOf(x) && xs2.indexOf(echoPk) < xs2
+                    .indexOf(y)
+                  val yFirst = xs2.indexOf(echoPk) > xs2.indexOf(y) && xs2.indexOf(echoPk) < xs2
+                    .indexOf(x)
+
+                  assert(xFirst || yFirst, s"pk $echoPk is somewhere between $x and $y, unordered")
+
+                case Anywhere =>
+              }
           }
         }
 

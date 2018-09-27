@@ -1,5 +1,7 @@
 package com.htmlism.lexorank
 
+import com.htmlism.lexorank.storage.InMemoryStorage
+
 /**
   * This represents a flow instance and valid position request for that instance. The expectation is that the storage
   * can satisfy the request without error.
@@ -13,9 +15,7 @@ package com.htmlism.lexorank
   * @tparam K A key type
   * @tparam R A rank type
   */
-case class StorageAndValidInsertRequest[F[_], K, R, PR[_] <: PositionRequest[_]](
-    store: storage.ScalaCollectionStorage[F, K, R],
-    req: PR[K])
+case class StorageAndValidInsertRequest[F[_], K, R](store: InMemoryStorage[F, K, R], req: PositionRequest[K])
 
 /**
   * This represents a flow instance and valid position request for that instance. The expectation is that the storage
@@ -31,7 +31,4 @@ case class StorageAndValidInsertRequest[F[_], K, R, PR[_] <: PositionRequest[_]]
   * @tparam K A key type
   * @tparam R A rank type
   */
-case class StorageAndValidChangeRequest[F[_], K, R, PR[_] <: PositionRequest[_]](
-    store: storage.ScalaCollectionStorage[F, K, R],
-    pk: K,
-    req: PR[K])
+case class StorageAndValidChangeRequest[F[_], K, R](store: InMemoryStorage[F, K, R], req: ChangeRequest[K])

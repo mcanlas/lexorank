@@ -17,8 +17,8 @@ class BetweenSpec
       whenever(x != y) {
         inside(Between(x, y)) {
           case Right(ab) =>
-            ab.after.value shouldBe x
-            ab.before.value shouldBe y
+            ab.a shouldBe x
+            ab.b shouldBe y
         }
       }
     }

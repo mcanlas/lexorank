@@ -6,6 +6,8 @@ import cats.effect._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 
+import com.htmlism.lexorank.storage.InMemoryStorage
+
 trait LexorankArbitraries {
   implicit val upToTen: Arbitrary[UpToTen] =
     Arbitrary {
@@ -21,12 +23,9 @@ trait LexorankArbitraries {
         .map(PosInt.apply)
     }
 
-  implicit def arbPositionRequest[A: Eq: Arbitrary]
-    : Arbitrary[PositionRequest[A]] =
+  implicit def arbPositionRequest[A: Eq: Arbitrary]: Arbitrary[PositionRequest[A]] =
     Arbitrary {
-      Gen.oneOf(arbitrary[Between[A]],
-                arbitrary[Before[A]],
-                arbitrary[After[A]])
+      Gen.oneOf(arbitrary[Between[A]], arbitrary[Before[A]], arbitrary[After[A]])
     }
 
   implicit def arbChange[A: Eq: Arbitrary]: Arbitrary[ChangeRequest[A]] =
@@ -61,75 +60,78 @@ trait LexorankArbitraries {
   implicit def arbAfter[A: Arbitrary]: Arbitrary[After[A]] =
     Arbitrary { arbitrary[A].map(After.apply) }
 
-  implicit def arbStorage[K: Arbitrary: KeyLike, V: Arbitrary: Rankable]
-    : Arbitrary[storage.ScalaCollectionStorage[IO, K, V]] =
+  implicit def arbStorage[K: Arbitrary: KeyLike, V: Arbitrary: Rankable]: Arbitrary[InMemoryStorage[IO, K, V]] =
     Arbitrary {
       genNonEmptyStorage[IO, K, V]
     }
 
-  private def genNonEmptyStorage[F[_]: Sync,
-                                 K: Arbitrary: KeyLike,
-                                 V: Arbitrary]
-    : Gen[storage.ScalaCollectionStorage[F, K, V]] =
+  private def genNonEmptyStorage[F[_]: Sync, K: Arbitrary: KeyLike, V: Arbitrary]: Gen[InMemoryStorage[F, K, V]] =
     Gen
       .nonEmptyMap(arbitrary[(V, String)])
-      .map(storage.ScalaCollectionStorage.from[F, K, V])
+      .map(InMemoryStorage.from[F, K, V])
 
-  private def genInvalidInsert[F[_]: Sync,
-                               K: KeyLike: Arbitrary,
-                               R: Arbitrary] =
+  private def genInsertBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary] =
     for {
       s <- genNonEmptyStorage[F, K, R]
       k <- Gen.oneOf(s.dump.keys.toVector)
-    } yield (s, k)
+    } yield StorageAndValidInsertRequest(s, Before(k))
 
-  implicit def arbInsertBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndValidInsertRequest[F, K, R, Before]] =
+  private def genInsertAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary] =
+    for {
+      s <- genNonEmptyStorage[F, K, R]
+      k <- Gen.oneOf(s.dump.keys.toVector)
+    } yield StorageAndValidInsertRequest(s, After(k))
+
+  private def genInsertBetween[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary] =
+    for {
+      s  <- genStorageAtLeast[F, K, R](2)
+      k1 <- Gen.oneOf(s.dump.keys.toVector)
+      k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
+    } yield StorageAndValidInsertRequest(s, Between(k1, k2).right.get)
+
+  implicit def arbInsertPair[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary]
+    : Arbitrary[StorageAndValidInsertRequest[F, K, R]] =
     Arbitrary {
-      genInvalidInsert[F, K, R]
-        .map { case (s, k) => StorageAndValidInsertRequest(s, Before(k)) }
+      Gen.oneOf(genInsertBefore[F, K, R], genInsertAfter[F, K, R], genInsertBetween[F, K, R])
     }
 
-  implicit def arbInsertAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndValidInsertRequest[F, K, R, After]] =
+  implicit def arbChangePair[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary]
+    : Arbitrary[StorageAndValidChangeRequest[F, K, R]] =
     Arbitrary {
-      genInvalidInsert[F, K, R]
-        .map { case (s, k) => StorageAndValidInsertRequest(s, After(k)) }
+      Gen.oneOf(genChangeBefore[F, K, R], genChangeAfter[F, K, R], genChangeBetween[F, K, R])
     }
 
-  implicit def arbChangeBefore[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndValidChangeRequest[F, K, R, Before]] =
-    Arbitrary {
-      val storageWithAtLeastTwo =
-        Gen
-          .nonEmptyMap(arbitrary[(R, String)])
-          .filter(_.size > 1)
-          .map(storage.ScalaCollectionStorage.from[F, K, R])
-
-      for {
-        s  <- storageWithAtLeastTwo
-        k1 <- Gen.oneOf(s.dump.keys.toVector)
-        k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
-      } yield {
-        StorageAndValidChangeRequest(s, k1, Before(k2))
-      }
+  private def genChangeBefore[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary] =
+    for {
+      s  <- genStorageAtLeast[F, K, R](2)
+      k1 <- Gen.oneOf(s.dump.keys.toVector)
+      k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
+    } yield {
+      StorageAndValidChangeRequest(s, ChangeRequest(k1, Before(k2)).right.get)
     }
 
-  implicit def arbChangeAfter[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary]
-    : Arbitrary[StorageAndValidChangeRequest[F, K, R, After]] =
-    Arbitrary {
-      val storageWithAtLeastTwo =
-        Gen
-          .nonEmptyMap(arbitrary[(R, String)])
-          .filter(_.size > 1)
-          .map(storage.ScalaCollectionStorage.from[F, K, R])
-
-      for {
-        s  <- storageWithAtLeastTwo
-        k1 <- Gen.oneOf(s.dump.keys.toVector)
-        k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
-      } yield {
-        StorageAndValidChangeRequest(s, k1, After(k2))
-      }
+  private def genChangeAfter[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary] =
+    for {
+      s  <- genStorageAtLeast[F, K, R](2)
+      k1 <- Gen.oneOf(s.dump.keys.toVector)
+      k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
+    } yield {
+      StorageAndValidChangeRequest(s, ChangeRequest(k1, After(k2)).right.get)
     }
+
+  private def genChangeBetween[F[_]: Sync, K: Eq: KeyLike: Arbitrary, R: Arbitrary] =
+    for {
+      s  <- genStorageAtLeast[F, K, R](3)
+      k1 <- Gen.oneOf(s.dump.keys.toVector)
+      k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
+      k3 <- Gen.oneOf((s.dump.keys.toSet - k1 - k2).toVector)
+    } yield {
+      StorageAndValidChangeRequest(s, ChangeRequest(k1, Between(k2, k3).right.get).right.get)
+    }
+
+  private def genStorageAtLeast[F[_]: Sync, K: KeyLike: Arbitrary, R: Arbitrary](n: Int) =
+    Gen
+      .nonEmptyMap(arbitrary[(R, String)])
+      .filter(_.size >= n)
+      .map(InMemoryStorage.from[F, K, R])
 }
