@@ -79,7 +79,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
     store.makeSpace(xs) *> lastMile(newRank)
 
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
-    generateNewRank(ctx)(pos) |> maybeMakeSpaceFor(ctx)
+    generateNewRank(ctx)(pos) >>= maybeMakeSpaceFor(ctx)
 
   // TODO is there a pathological case here where you might request a change that is already true?
   def changePosition(req: ChangeRequest[K]): F[Row Or LexorankError] =
@@ -148,22 +148,22 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
     *
     * At this point after `isKeyInContext` we assume that the keys in the position request exist in the context.
     */
-  private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R = {
+  private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): OrLexorankError[R] = {
     val afterRank  = req.after.flatMap(ctx.get)
     val beforeRank = req.before.flatMap(ctx.get)
 
     (afterRank, beforeRank) match {
       case (Some(min), Some(max)) =>
-        RG.between(min, max)
+        Either.cond(O.compare(min, max) < 0, RG.between(min, max), errors.ImpossibleBetweenRequest)
 
       case (Some(min), None) =>
-        RG.after(min)
+        Right(RG.after(min))
 
       case (None, Some(max)) =>
-        RG.before(max)
+        Right(RG.before(max))
 
       case (None, None) =>
-        RG.anywhere
+        Right(RG.anywhere)
     }
   }
 }
