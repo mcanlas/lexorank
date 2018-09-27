@@ -122,28 +122,39 @@ class LexorankSpec
 
   "a valid Change request" should "maintain size; reflect requested order; retain old order" in {
     forAll { duo: StorageAndValidChangeRequest[IO, PosInt, PosInt] =>
-      val StorageAndValidChangeRequest(store, req) = duo
-      println(req)
+      val StorageAndValidChangeRequest(store, chReq) = duo
 
       val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
 
       val io =
         for {
           xs1 <- flow.getRows
-          or  <- flow.changePosition(req)
+          or  <- flow.changePosition(chReq)
           xs2 <- flow.getRows
         } yield {
           inside(or) {
             case Right((echoPk, _)) =>
-              req.id shouldBe echoPk
+              chReq.id shouldBe echoPk
 
-              xs1 diff List(req.id) should contain theSameElementsInOrderAs (xs2 diff List(req.id))
+              xs1 diff List(chReq.id) should contain theSameElementsInOrderAs (xs2 diff List(chReq.id))
 
-            // TODO test all cases
+              chReq.req match {
+                case Before(k) =>
+                  assert(xs2.indexOf(echoPk) < xs2.indexOf(k), s"pk $echoPk comes before requested pk $k")
 
-            // TODO test rank of changed element more specifically
-//              assert(xs2.indexOf(pk) > xs2.indexOf(req.k),
-//                     s"pk $pk comes after requested pk ${req.k}")
+                case After(k) =>
+                  assert(xs2.indexOf(echoPk) > xs2.indexOf(k), s"pk $echoPk comes after requested pk $k")
+
+                case Between(x, y) =>
+                  val xFirst = xs2.indexOf(echoPk) > xs2.indexOf(x) && xs2.indexOf(echoPk) < xs2
+                    .indexOf(y)
+                  val yFirst = xs2.indexOf(echoPk) > xs2.indexOf(y) && xs2.indexOf(echoPk) < xs2
+                    .indexOf(x)
+
+                  assert(xFirst || yFirst, s"pk $echoPk is somewhere between $x and $y, unordered")
+
+                case Anywhere =>
+              }
           }
         }
 
