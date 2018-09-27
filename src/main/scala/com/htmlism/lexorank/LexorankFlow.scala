@@ -148,24 +148,20 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
     *
     * At this point after `isKeyInContext` we assume that the keys in the position request exist in the context.
     */
-  private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): OrLexorankError[R] = {
-    val afterRank  = req.after.flatMap(ctx.get)
-    val beforeRank = req.before.flatMap(ctx.get)
+  private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): OrLexorankError[R] =
+    req match {
+      case Before(x) =>
+        Right(RG.before(ctx(x)))
 
-    (afterRank, beforeRank) match {
-      case (Some(min), Some(max)) =>
-        Either.cond(O.compare(min, max) < 0, RG.between(min, max), errors.ImpossibleBetweenRequest)
+      case After(x) =>
+        Right(RG.after(ctx(x)))
 
-      case (Some(min), None) =>
-        Right(RG.after(min))
+      case Between(x, y) =>
+        Right(RG.between(ctx(x), ctx(y)))
 
-      case (None, Some(max)) =>
-        Right(RG.before(max))
-
-      case (None, None) =>
+      case Anywhere =>
         Right(RG.anywhere)
     }
-  }
 }
 
 object Lexorank {

@@ -94,14 +94,25 @@ class LexorankSpec
             case Right((newPk, rec)) =>
               xs2 diff List(newPk) should contain theSameElementsInOrderAs xs1
 
-              req.before.foreach { k =>
-                assert(xs2.indexOf(newPk) < xs2.indexOf(k),
-                       s"new pk $newPk comes before requested pk $k")
-              }
+              req match {
+                case Before(k) =>
+                  assert(xs2.indexOf(newPk) < xs2.indexOf(k),
+                         s"new pk $newPk comes before requested pk $k")
 
-              req.after.foreach { k =>
-                assert(xs2.indexOf(newPk) > xs2.indexOf(k),
-                       s"new pk $newPk comes after requested pk $k")
+                case After(k) =>
+                  assert(xs2.indexOf(newPk) > xs2.indexOf(k),
+                         s"new pk $newPk comes after requested pk $k")
+
+                case Between(x, y) =>
+                  val xFirst = xs2.indexOf(newPk) > xs2.indexOf(x) && xs2.indexOf(newPk) < xs2
+                    .indexOf(y)
+                  val yFirst = xs2.indexOf(newPk) > xs2.indexOf(y) && xs2.indexOf(newPk) < xs2
+                    .indexOf(x)
+
+                  assert(xFirst || yFirst,
+                         s"new pk $newPk is somewhere between $x and $y, unordered")
+
+                case Anywhere =>
               }
 
               rec.name shouldBe s
@@ -111,8 +122,6 @@ class LexorankSpec
       io.unsafeRunSync()
     }
   }
-
-  // TODO insert between
 
   "a valid Change request" should "maintain size; reflect requested order; retain old order" in {
     forAll { duo: StorageAndValidChangeRequest[IO, PosInt, PosInt] =>
