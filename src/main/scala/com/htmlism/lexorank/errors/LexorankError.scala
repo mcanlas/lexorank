@@ -14,9 +14,9 @@ case object DuplicateBetweenKeys extends RequestError
 /**
   * When a requested row key or position request key does not exist in the context snapshot.
   */
-case object KeyNotInContext extends AfterIoError
+case object KeyNotInContext          extends AfterIoError
 case object ImpossibleBetweenRequest extends AfterIoError
-sealed trait OverflowError  extends AfterIoError
+sealed trait OverflowError           extends AfterIoError
 
 sealed trait MaxOverflow extends OverflowError
 case object MaxOverflow  extends MaxOverflow
