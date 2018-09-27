@@ -112,11 +112,10 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
     * were already "taken".
     */
   @tailrec
-  private def makeSpaceForReally(
-      ctx: Snapshot,
-      updates: List[Update],
-      rank: R,
-      previousStrategy: Option[CollisionStrategy]): List[Update] Or errors.OverflowError =
+  private def makeSpaceForReally(ctx: Snapshot,
+                                 updates: List[Update],
+                                 rank: R,
+                                 previousStrategy: Option[CollisionStrategy]): List[Update] Or errors.OverflowError =
     Lexorank.rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat =

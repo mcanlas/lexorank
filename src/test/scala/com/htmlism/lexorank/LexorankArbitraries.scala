@@ -60,14 +60,12 @@ trait LexorankArbitraries {
   implicit def arbAfter[A: Arbitrary]: Arbitrary[After[A]] =
     Arbitrary { arbitrary[A].map(After.apply) }
 
-  implicit def arbStorage[K: Arbitrary: KeyLike, V: Arbitrary: Rankable]
-    : Arbitrary[InMemoryStorage[IO, K, V]] =
+  implicit def arbStorage[K: Arbitrary: KeyLike, V: Arbitrary: Rankable]: Arbitrary[InMemoryStorage[IO, K, V]] =
     Arbitrary {
       genNonEmptyStorage[IO, K, V]
     }
 
-  private def genNonEmptyStorage[F[_]: Sync, K: Arbitrary: KeyLike, V: Arbitrary]
-    : Gen[InMemoryStorage[F, K, V]] =
+  private def genNonEmptyStorage[F[_]: Sync, K: Arbitrary: KeyLike, V: Arbitrary]: Gen[InMemoryStorage[F, K, V]] =
     Gen
       .nonEmptyMap(arbitrary[(V, String)])
       .map(InMemoryStorage.from[F, K, V])

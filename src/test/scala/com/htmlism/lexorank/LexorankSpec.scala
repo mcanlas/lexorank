@@ -96,12 +96,10 @@ class LexorankSpec
 
               req match {
                 case Before(k) =>
-                  assert(xs2.indexOf(newPk) < xs2.indexOf(k),
-                         s"new pk $newPk comes before requested pk $k")
+                  assert(xs2.indexOf(newPk) < xs2.indexOf(k), s"new pk $newPk comes before requested pk $k")
 
                 case After(k) =>
-                  assert(xs2.indexOf(newPk) > xs2.indexOf(k),
-                         s"new pk $newPk comes after requested pk $k")
+                  assert(xs2.indexOf(newPk) > xs2.indexOf(k), s"new pk $newPk comes after requested pk $k")
 
                 case Between(x, y) =>
                   val xFirst = xs2.indexOf(newPk) > xs2.indexOf(x) && xs2.indexOf(newPk) < xs2
@@ -109,8 +107,7 @@ class LexorankSpec
                   val yFirst = xs2.indexOf(newPk) > xs2.indexOf(y) && xs2.indexOf(newPk) < xs2
                     .indexOf(x)
 
-                  assert(xFirst || yFirst,
-                         s"new pk $newPk is somewhere between $x and $y, unordered")
+                  assert(xFirst || yFirst, s"new pk $newPk is somewhere between $x and $y, unordered")
 
                 case Anywhere =>
               }
