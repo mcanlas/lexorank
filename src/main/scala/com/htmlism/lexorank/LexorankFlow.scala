@@ -82,16 +82,6 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(
   private def attemptWritesToStorage(payload: String)(xs: List[Update], r: R) =
     store.makeSpace(xs) *> store.insertNewRecord(payload, r)
 
-  /**
-    * We reached this area because we determined in memory that finding a new rank key was not possible. The
-    * end of this IO should be the end of the transaction also (to relax the select for update locks).
-    */
-  // TODO unused
-  private def handleKeySpaceError(err: errors.OverflowError): F[Row Or String] =
-    F.pure {
-      Left("could not make space for you, sorry bud")
-    }
-
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) |> maybeMakeSpaceFor(ctx)
 
