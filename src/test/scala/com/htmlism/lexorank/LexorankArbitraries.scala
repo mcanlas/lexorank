@@ -1,7 +1,6 @@
 package com.htmlism.lexorank
 
 import cats._
-import cats.implicits._
 import cats.effect._
 
 import org.scalacheck._
