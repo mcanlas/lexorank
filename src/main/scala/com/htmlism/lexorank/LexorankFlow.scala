@@ -65,6 +65,12 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
       store.lockSnapshot >>= attemptWriteWorkflow(pos, store.insertNewRecord(payload, _))
     }
 
+  // TODO is there a pathological case here where you might request a change that is already true?
+  def changePosition(req: ChangeRequest[K]): F[Row Or LexorankError] =
+    tx {
+      store.lockSnapshot >>= attemptWriteWorkflow(req.req, store.changeRankTo(req.id, _))
+    }
+
   private def attemptWriteWorkflow(pos: PositionRequest[K], lastMile: R => G[Row])(ctx: Snapshot) =
     (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
       .traverse((attemptWritesToStorage(lastMile) _).tupled)
@@ -83,12 +89,6 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
 
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(pos) >>= maybeMakeSpaceFor(ctx)
-
-  // TODO is there a pathological case here where you might request a change that is already true?
-  def changePosition(req: ChangeRequest[K]): F[Row Or LexorankError] =
-    tx {
-      store.lockSnapshot >>= attemptWriteWorkflow(req.req, store.changeRankTo(req.id, _))
-    }
 
   private def maybeMakeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
