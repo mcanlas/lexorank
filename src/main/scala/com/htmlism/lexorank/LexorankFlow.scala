@@ -88,7 +88,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
   }
 
   private def attemptWritesToStorage(consumeRank: R => G[Row])(xs: List[Update], newRank: R) =
-    store.makeSpace(xs) *> consumeRank(newRank)
+    xs.traverse_(store.applyUpdateInCascade) *> consumeRank(newRank)
 
   private def canWeCreateANewRank(req: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(req) >>= maybeMakeSpaceForNewRank(ctx)

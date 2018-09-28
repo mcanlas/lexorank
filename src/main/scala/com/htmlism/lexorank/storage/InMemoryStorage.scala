@@ -62,9 +62,6 @@ class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends St
       xs.map(r => r._1 -> r._2.rank).toMap
     }
 
-  def makeSpace(xs: List[Update]): F[Unit] =
-    xs.traverse_(applyUpdateInCascade)
-
   def insertNewRecord(payload: String, rank: R): F[Row] =
     F.delay {
       addRecord(payload, rank)
