@@ -90,7 +90,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     xs.traverse_(store.applyUpdateInCascade) *> consumeRank(newRank)
 
   private def canWeCreateANewRank(req: PositionRequest[K])(ctx: Snapshot) =
-    generateNewRank(ctx)(req) >>= maybeMakeSpaceForNewRank(ctx)
+    generateNewRank(ctx)(req) |> maybeMakeSpaceForNewRank(ctx)
 
   private def maybeMakeSpaceForNewRank(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
@@ -154,19 +154,19 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     *
     * At this point after `isKeyInContext` we assume that the keys in the position request exist in the context.
     */
-  private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): OrLexorankError[R] =
+  private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R =
     req match {
       case Before(x) =>
-        Right(RG.before(ctx(x)))
+        RG.before(ctx(x))
 
       case After(x) =>
-        Right(RG.after(ctx(x)))
+        RG.after(ctx(x))
 
       case Between(x, y) =>
-        Right(RG.between(ctx(x), ctx(y)))
+        RG.between(ctx(x), ctx(y))
 
       case Anywhere =>
-        Right(RG.anywhere)
+        RG.anywhere
     }
 
   private def rankCollidesAt(rank: R)(ctx: Map[K, R]) =
