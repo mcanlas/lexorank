@@ -6,6 +6,8 @@ import cats._
 import cats.implicits._
 import mouse.all._
 
+import com.htmlism.lexorank.request._
+
 /**
   * We can consciously choose not to support the use case of inserting new records in storage that currently has no
   * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs

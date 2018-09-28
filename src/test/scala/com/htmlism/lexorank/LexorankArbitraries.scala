@@ -6,6 +6,7 @@ import cats.effect._
 import org.scalacheck._
 import org.scalacheck.Arbitrary.arbitrary
 
+import com.htmlism.lexorank.request._
 import com.htmlism.lexorank.storage.InMemoryStorage
 
 trait LexorankArbitraries {

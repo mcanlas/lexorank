@@ -6,6 +6,7 @@ import cats.effect._
 import org.scalatest._
 import org.scalatest.prop._
 
+import com.htmlism.lexorank.request._
 import com.htmlism.lexorank.storage.InMemoryStorage
 
 class LexorankSpec

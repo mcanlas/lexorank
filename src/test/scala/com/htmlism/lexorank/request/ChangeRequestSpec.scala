@@ -1,4 +1,5 @@
 package com.htmlism.lexorank
+package request
 
 import cats.instances.int._
 

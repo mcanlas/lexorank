@@ -1,5 +1,6 @@
 package com.htmlism.lexorank
 
+import com.htmlism.lexorank.request._
 import com.htmlism.lexorank.storage.InMemoryStorage
 
 /**
