@@ -25,8 +25,7 @@ import com.htmlism.lexorank.request._
   */
 // TODO differentiate between outer effect type F and database IO type G
 class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R], RG: RankGenerator[R])(
-    implicit R: Rankable[R],
-    O: Ordering[R]) {
+    implicit R: Rankable[R]) {
 
   /**
     * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
@@ -54,7 +53,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
   /**
     * Scala `ListSet` is buggy in 2.11 so don't bother.
     */
-  def getRows: F[List[K]] =
+  def getRows(implicit ord: Ordering[R]): F[List[K]] =
     tx {
       store.getSnapshot
         .map(_.toList.sortBy(_._2).map(_._1))
