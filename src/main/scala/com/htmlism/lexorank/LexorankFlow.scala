@@ -60,20 +60,20 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
   /**
     * A public method for attempting to insert an anonymous payload at some position.
     */
-  def insertAt(payload: String, pos: PositionRequest[K]): F[Row Or LexorankError] =
+  def insertAt(payload: String, req: PositionRequest[K]): F[Row Or LexorankError] =
     tx {
-      store.lockSnapshot >>= attemptWriteWorkflow(pos, store.insertNewRecord(payload, _))
+      store.lockSnapshot >>= attemptWriteWorkflow(req, store.insertNewRecord(payload, _))
     }
 
   // TODO is there a pathological case here where you might request a change that is already true?
-  def changePosition(req: ChangeRequest[K]): F[Row Or LexorankError] =
+  def changePosition(chReq: ChangeRequest[K]): F[Row Or LexorankError] =
     tx {
-      store.lockSnapshot >>= attemptWriteWorkflow(req.req, store.changeRankTo(req.id, _))
+      store.lockSnapshot >>= attemptWriteWorkflow(chReq.req, store.changeRankTo(chReq.id, _))
     }
 
-  private def attemptWriteWorkflow(pos: PositionRequest[K], lastMile: R => G[Row])(ctx: Snapshot) =
-    (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
-      .traverse((attemptWritesToStorage(lastMile) _).tupled)
+  private def attemptWriteWorkflow(req: PositionRequest[K], consumeRank: R => G[Row])(ctx: Snapshot) =
+    (isKeyInContext(req, ctx) >>= canWeCreateANewRank(req))
+      .traverse((attemptWritesToStorage(consumeRank) _).tupled)
 
   /**
     * Partially unified type annotation for IntelliJ's benefit.
@@ -84,13 +84,13 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     Either.cond(maybeKeys.forall(_.nonEmpty), ctx, errors.KeyNotInContext)
   }
 
-  private def attemptWritesToStorage(lastMile: R => G[Row])(xs: List[Update], newRank: R) =
-    store.makeSpace(xs) *> lastMile(newRank)
+  private def attemptWritesToStorage(consumeRank: R => G[Row])(xs: List[Update], newRank: R) =
+    store.makeSpace(xs) *> consumeRank(newRank)
 
-  private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
-    generateNewRank(ctx)(pos) >>= maybeMakeSpaceFor(ctx)
+  private def canWeCreateANewRank(req: PositionRequest[K])(ctx: Snapshot) =
+    generateNewRank(ctx)(req) >>= maybeMakeSpaceForNewRank(ctx)
 
-  private def maybeMakeSpaceFor(ctx: Snapshot)(rank: R) = {
+  private def maybeMakeSpaceForNewRank(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
     makeSpaceForReally(ctx, Nil, rank, None)
       .map(ups => ups -> rank)
