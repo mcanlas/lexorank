@@ -11,6 +11,8 @@ import doobie.h2.implicits._
 import doobie.util.fragment.Fragment
 
 object Preload {
+  private val jdbcUrl = "jdbc:h2:mem:"
+
   private val startUpSql = scala.io.Source
     .fromResource("schema.sql")
     .getLines()
@@ -19,44 +21,31 @@ object Preload {
   private def runStartUpSql[F[_]: Monad](tx: Transactor[F]): F[Transactor[F]] =
     Fragment.const0(startUpSql).update.run.transact(tx).as(tx)
 
-  def fresh[F[_]: Async]: F[Transactor[F]] =
-    H2Transactor.newH2Transactor[F]("jdbc:h2:mem:", "", "") >>= runStartUpSql
+  def within[F[_]: Async]: F[Transactor[F]] =
+    H2Transactor.newH2Transactor[F](jdbcUrl, "", "") >>= runStartUpSql[F]
 
-  def withStream[F[_]: Async] =
-    for {
-      xa <- H2Transactor.stream[F]("jdbc:h2:mem:", "", "")
-    } yield xa
-
-  withStream[IO]
-    .evalMap(runStartUpSql)
-
-//  def withIo[A](f: doobie.util.transactor.Transactor[IO] => IO[A]) =
-//    withStream[IO, A] { tx =>
-//      f(tx)
-//    }.compile.drain.unsafeRunSync
+  def asStream[F[_]: Async]: fs2.Stream[F, doobie.Transactor[F]] =
+    H2Transactor
+      .stream[F](jdbcUrl, "", "")
+      .evalMap(runStartUpSql[F])
 }
 
 object Scratch extends App {
-  val create = scala.io.Source
-    .fromResource("schema.sql")
-    .getLines()
-    .mkString("\n")
+  Preload
+    .within[IO]
+    .flatMap { x =>
+      sql"SELECT * from rankable_entities".query[(Int, String, Int)].to[List].transact(x)
+    }
+    .map(println)
+    .unsafeRunSync()
 
-  H2Transactor
-    .stream[IO]("jdbc:h2:mem:", "", "")
+  Preload
+    .asStream[IO]
+    .evalMap { x =>
+      sql"SELECT * from rankable_entities".query[(Int, String, Int)].to[List].transact(x)
+    }
+    .map(println)
     .compile
     .drain
-
-  def partial[A[_]: Async, B] =
-    for {
-      xa <- H2Transactor.newH2Transactor[A]("jdbc:h2:mem:", "", "")
-      a  <- sql"SELECT 3".query[Int].unique.transact(xa)
-      _  <- xa.dispose
-      n  <- Fragment.const0(create).update.run.transact(xa)
-      xs <- sql"SELECT * from rankable_entities".query[(Int, String, Int)].to[List].transact(xa)
-    } yield n
-
-  partial[IO, Nothing]
-    .map(println)
     .unsafeRunSync()
 }
