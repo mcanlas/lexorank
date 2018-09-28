@@ -24,7 +24,7 @@ object Preload {
   def within[F[_]: Async]: F[Transactor[F]] =
     H2Transactor.newH2Transactor[F](jdbcUrl, "", "") >>= runStartUpSql[F]
 
-  def asStream[F[_]: Async]: fs2.Stream[F, doobie.Transactor[F]] =
+  def streamOf[F[_]: Async]: fs2.Stream[F, doobie.Transactor[F]] =
     H2Transactor
       .stream[F](jdbcUrl, "", "")
       .evalMap(runStartUpSql[F])
@@ -40,7 +40,7 @@ object Scratch extends App {
     .unsafeRunSync()
 
   Preload
-    .asStream[IO]
+    .streamOf[IO]
     .evalMap { x =>
       sql"SELECT * from rankable_entities".query[(Int, String, Int)].to[List].transact(x)
     }
