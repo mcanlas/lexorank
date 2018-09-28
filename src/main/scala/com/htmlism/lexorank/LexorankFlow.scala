@@ -11,13 +11,12 @@ import mouse.all._
   * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
   * changing. Admin users can seed the database with at least one row to facilitate this.
   *
-  * @param store Persistent storage
+  * @param tx Like a Doobie transactor; a natural transformation from storage effect `G` to effect type `F`
+  * @param store Persistent storage for rows, keys, and ranks
   * @param RG A strategy for generating values in `R`
   *
-  * @param F Evidence for IO
-  * @param R Evidence for rank behaviors over `R`
-  *
-  * @tparam F An effect type
+  * @tparam F The outer, transactional effect type (like IO) used after interpreting programs written in `G`
+  * @tparam G A composable effect type for storage
   * @tparam K The type for primary keys in this storage. Usually `Int`
   * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
   */
