@@ -77,9 +77,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     (areRequestKeysValid(req, ctx) >>= canWeCreateANewRank(req))
       .traverse((attemptWritesToStorage(consumeRank) _).tupled)
 
-  /**
-    * Partially unified type annotation for IntelliJ's benefit.
-    */
+  // partially applied either bifunctor for error-free flatmap in intellij
   private def areRequestKeysValid(req: PositionRequest[K], ctx: Snapshot): OrLexorankError[Snapshot] =
     Either.cond(req.keys.forall(ctx.contains), ctx, errors.KeyNotInContext)
 
