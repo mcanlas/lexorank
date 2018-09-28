@@ -43,8 +43,6 @@ trait Storage[F[_], K, R] {
     */
   def lockSnapshot: F[Snapshot]
 
-  def makeSpace(xs: List[Update]): F[Unit]
-
   def insertNewRecord(payload: String, rank: R): F[Row]
 
   def changeRankTo(id: K, rank: R): F[Row]

@@ -1,5 +1,9 @@
 package com.htmlism.lexorank
+package storage
 
+/**
+  * Used only for in-memory. SQL-based storage will implement this internally (obviating the need for this typeclass).
+  */
 trait KeyLike[A] {
   def first: A
 
