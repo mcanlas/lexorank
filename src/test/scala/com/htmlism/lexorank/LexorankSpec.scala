@@ -15,10 +15,12 @@ class LexorankSpec
     with GeneratorDrivenPropertyChecks
     with LexorankArbitraries
     with Determinism {
+  private val tx = cats.arrow.FunctionK.id[IO]
+
   "insertion anywhere" should "always be successful given an int-sized store" in {
     forAll { store: InMemoryStorage[IO, PosInt, PosInt] =>
       val previousSize = store.size
-      val flow         = new LexorankFlow(store, rgPosInt)
+      val flow         = new LexorankFlow(tx, store, rgPosInt)
 
       flow
         .insertAt("", Anywhere)
@@ -32,7 +34,7 @@ class LexorankSpec
     val limit = 10
 
     val store = InMemoryStorage.empty[IO, PosInt, UpToTen]
-    val flow  = new LexorankFlow(store, UpToTen.AlwaysSayMin)
+    val flow  = new LexorankFlow(tx, store, UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
       println(n + ":")
@@ -65,7 +67,7 @@ class LexorankSpec
   "insertion anywhere" should "error given a crowded key space" ignore {
     forAll { store: InMemoryStorage[IO, PosInt, UpToTen] =>
       val previousSize = store.size
-      val flow         = new LexorankFlow(store, UpToTen.AlwaysSayMin)
+      val flow         = new LexorankFlow(tx, store, UpToTen.AlwaysSayMin)
 
       flow
         .insertAt("", Anywhere)
@@ -82,7 +84,7 @@ class LexorankSpec
     forAll { (pair: StorageAndValidInsertRequest[IO, PosInt, PosInt], s: String) =>
       val StorageAndValidInsertRequest(store, req) = pair
 
-      val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
+      val flow = new LexorankFlow(tx, store, rgPosInt)
 
       val io =
         for {
@@ -124,7 +126,7 @@ class LexorankSpec
     forAll { duo: StorageAndValidChangeRequest[IO, PosInt, PosInt] =>
       val StorageAndValidChangeRequest(store, chReq) = duo
 
-      val flow = new LexorankFlow[IO, PosInt, PosInt](store, rgPosInt)
+      val flow = new LexorankFlow(tx, store, rgPosInt)
 
       val io =
         for {

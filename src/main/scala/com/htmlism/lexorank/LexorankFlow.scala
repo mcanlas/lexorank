@@ -22,9 +22,9 @@ import mouse.all._
   * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
   */
 // TODO differentiate between outer effect type F and database IO type G
-class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(implicit F: Monad[F],
-                                                                              R: Rankable[R],
-                                                                              O: Ordering[R]) {
+class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R], RG: RankGenerator[R])(
+    implicit R: Rankable[R],
+    O: Ordering[R]) {
 
   /**
     * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
@@ -53,16 +53,20 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
     * Scala `ListSet` is buggy in 2.11 so don't bother.
     */
   def getRows: F[List[K]] =
-    store.getSnapshot
-      .map(_.toList.sortBy(_._2).map(_._1))
+    tx {
+      store.getSnapshot
+        .map(_.toList.sortBy(_._2).map(_._1))
+    }
 
   /**
     * A public method for attempting to insert an anonymous payload at some position.
     */
   def insertAt(payload: String, pos: PositionRequest[K]): F[Row Or LexorankError] =
-    store.lockSnapshot >>= attemptWriteWorkflow(pos, store.insertNewRecord(payload, _))
+    tx {
+      store.lockSnapshot >>= attemptWriteWorkflow(pos, store.insertNewRecord(payload, _))
+    }
 
-  private def attemptWriteWorkflow(pos: PositionRequest[K], lastMile: R => F[Row])(ctx: Snapshot) =
+  private def attemptWriteWorkflow(pos: PositionRequest[K], lastMile: R => G[Row])(ctx: Snapshot) =
     (isKeyInContext(pos, ctx) >>= canWeCreateANewRank(pos))
       .traverse((attemptWritesToStorage(lastMile) _).tupled)
 
@@ -75,7 +79,7 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
     Either.cond(maybeKeys.forall(_.nonEmpty), ctx, errors.KeyNotInContext)
   }
 
-  private def attemptWritesToStorage(lastMile: R => F[Row])(xs: List[Update], newRank: R) =
+  private def attemptWritesToStorage(lastMile: R => G[Row])(xs: List[Update], newRank: R) =
     store.makeSpace(xs) *> lastMile(newRank)
 
   private def canWeCreateANewRank(pos: PositionRequest[K])(ctx: Snapshot) =
@@ -83,7 +87,9 @@ class LexorankFlow[F[_], K, R](store: Storage[F, K, R], RG: RankGenerator[R])(im
 
   // TODO is there a pathological case here where you might request a change that is already true?
   def changePosition(req: ChangeRequest[K]): F[Row Or LexorankError] =
-    store.lockSnapshot >>= attemptWriteWorkflow(req.req, store.changeRankTo(req.id, _))
+    tx {
+      store.lockSnapshot >>= attemptWriteWorkflow(req.req, store.changeRankTo(req.id, _))
+    }
 
   private def maybeMakeSpaceFor(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")

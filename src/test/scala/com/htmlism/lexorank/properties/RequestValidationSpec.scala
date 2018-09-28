@@ -15,8 +15,10 @@ class RequestValidationSpec
     with LexorankArbitraries
     with Inside
     with Determinism {
+  private val tx = cats.arrow.FunctionK.id[IO]
+
   private val emptyFlow =
-    new LexorankFlow[IO, PosInt, PosInt](new InMemoryStorage[IO, PosInt, PosInt], rgPosInt)
+    new LexorankFlow(tx, new InMemoryStorage[IO, PosInt, PosInt], rgPosInt)
 
   "invalid insert before requests" should "return a key error" in {
     forAll { req: Before[PosInt] =>

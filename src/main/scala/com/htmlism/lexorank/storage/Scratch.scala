@@ -11,12 +11,14 @@ import doobie.h2.implicits._
 import doobie.util.fragment.Fragment
 
 object Preload {
-  private val jdbcUrl = "jdbc:h2:mem:"
+  private val jdbcUrl     = "jdbc:h2:mem:"
+  private val sqlResource = "schema.sql"
 
-  private val startUpSql = scala.io.Source
-    .fromResource("schema.sql")
-    .getLines()
-    .mkString("\n")
+  private val resource211 =
+    scala.io.Source.fromInputStream(getClass.getResourceAsStream(sqlResource))
+
+  // `Source.fromResource` only in scala 2.12
+  private val startUpSql = resource211.getLines.mkString("\n")
 
   private def runStartUpSql[F[_]: Monad](tx: Transactor[F]): F[Transactor[F]] =
     Fragment.const0(startUpSql).update.run.transact(tx).as(tx)
