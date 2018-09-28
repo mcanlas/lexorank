@@ -6,6 +6,7 @@ import cats._
 import cats.implicits._
 import mouse.all._
 
+import com.htmlism.lexorank.ranking._
 import com.htmlism.lexorank.request._
 
 /**

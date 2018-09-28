@@ -1,4 +1,5 @@
 package com.htmlism.lexorank
+package ranking
 
 import com.htmlism.lexorank.errors._
 

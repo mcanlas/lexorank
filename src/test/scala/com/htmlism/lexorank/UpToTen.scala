@@ -1,6 +1,7 @@
 package com.htmlism.lexorank
 
 import com.htmlism.lexorank.errors._
+import com.htmlism.lexorank.ranking.{CollisionStrategy, MoveDown, MoveUp, Rankable}
 
 /**
   * A newtype for integers between 1 and 10 inclusive. Used to simulate an easily-crowded key space.
