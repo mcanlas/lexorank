@@ -123,7 +123,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
                                  updates: List[Update],
                                  rank: R,
                                  previousStrategy: Option[CollisionStrategy]): List[Update] Or errors.OverflowError =
-    Lexorank.rankCollidesAt(rank)(ctx) match {
+    rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat =
           getStrat(rank, previousStrategy)
@@ -168,10 +168,8 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
       case Anywhere =>
         Right(RG.anywhere)
     }
-}
 
-object Lexorank {
-  def rankCollidesAt[K, R](rank: R)(ctx: Map[K, R])(implicit R: Rankable[R]): Option[K] =
+  private def rankCollidesAt(rank: R)(ctx: Map[K, R]) =
     ctx.find { case (_, r) => R.eq(r, rank) }.map(_._1)
 }
 
