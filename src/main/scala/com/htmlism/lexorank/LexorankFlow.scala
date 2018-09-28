@@ -72,13 +72,13 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     }
 
   private def attemptWriteWorkflow(req: PositionRequest[K], consumeRank: R => G[Row])(ctx: Snapshot) =
-    (isKeyInContext(req, ctx) >>= canWeCreateANewRank(req))
+    (areRequestKeysValid(req, ctx) >>= canWeCreateANewRank(req))
       .traverse((attemptWritesToStorage(consumeRank) _).tupled)
 
   /**
     * Partially unified type annotation for IntelliJ's benefit.
     */
-  private def isKeyInContext(req: PositionRequest[K], ctx: Snapshot): OrLexorankError[Snapshot] = {
+  private def areRequestKeysValid(req: PositionRequest[K], ctx: Snapshot): OrLexorankError[Snapshot] = {
     val maybeKeys = req.keys.map(ctx.get)
 
     Either.cond(maybeKeys.forall(_.nonEmpty), ctx, errors.KeyNotInContext)
