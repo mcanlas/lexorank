@@ -10,8 +10,8 @@ initialCommands in console := "import com.htmlism.lexorank._"
 // for cats
 scalacOptions += "-Ypartial-unification"
 
-libraryDependencies += "org.typelevel" %% "cats-core"   % "1.4.0"
-libraryDependencies += "org.typelevel" %% "cats-effect" % "1.0.0"
+//libraryDependencies += "org.typelevel" %% "cats-core"   % "1.4.0"
+//libraryDependencies += "org.typelevel" %% "cats-effect" % "1.0.0"
 libraryDependencies += "org.typelevel" %% "mouse"       % "0.18"
 
 libraryDependencies += "org.tpolecat" %% "doobie-core" % doobieVersion

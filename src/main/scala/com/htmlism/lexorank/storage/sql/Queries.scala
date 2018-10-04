@@ -52,25 +52,25 @@ class Queries[K: Meta, R: Meta] {
             rankable_entities
        """.update
 
-  def updateRankForLastMile(id: K, rank: R): Update0 =
-    sql"""
-          UPDATE
-            rankable_entities
-          SET
-            rank = $rank
-          WHERE
-            rank = $id
-       """.update
-
-  def updateRankInCascade(id: K, from: R, to: R): Update0 =
-    sql"""
-          UPDATE
-            rankable_entities
-          SET
-            rank = $to
-          WHERE
-            id = $id and
-            rank = $from
-       """.update
+//  def updateRankForLastMile(id: K, rank: R): Update0 =
+//    sql"""
+//          UPDATE
+//            rankable_entities
+//          SET
+//            rank = $rank
+//          WHERE
+//            rank = $id
+//       """.update
+//
+//  def updateRankInCascade(id: K, from: R, to: R): Update0 =
+//    sql"""
+//          UPDATE
+//            rankable_entities
+//          SET
+//            rank = $to
+//          WHERE
+//            id = $id and
+//            rank = $from
+//       """.update
 
 }
