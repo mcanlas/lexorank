@@ -7,7 +7,7 @@ import org.scalatest._
 import org.scalatest.prop._
 
 import com.htmlism.lexorank.request._
-import com.htmlism.lexorank.storage.InMemoryStorage
+import com.htmlism.lexorank.storage.inmemory.InMemoryStorage
 
 class LexorankSpec
     extends FlatSpec

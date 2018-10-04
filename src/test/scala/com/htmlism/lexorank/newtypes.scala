@@ -1,7 +1,7 @@
 package com.htmlism.lexorank
 
 import com.htmlism.lexorank.request._
-import com.htmlism.lexorank.storage.InMemoryStorage
+import com.htmlism.lexorank.storage.inmemory.InMemoryStorage
 
 /**
   * This represents a flow instance and valid position request for that instance. The expectation is that the storage
