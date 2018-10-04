@@ -43,8 +43,24 @@ trait Storage[F[_], K, R] {
     */
   def lockSnapshot: F[Snapshot]
 
+  /**
+    * A "last mile" storage update that differentiates insert requests from change requests.
+    *
+    * @param payload Arbitrary data
+    * @param rank The rank to insert this record at
+    *
+    * @return The newly inserted record with its new primary key
+    */
   def insertNewRecord(payload: String, rank: R): F[Row]
 
+  /**
+    * A "last mile" storage update that differentiates insert requests from change requests.
+    *
+    * @param id The primary key of the record that is being updated
+    * @param rank The rank to change this record to
+    *
+    * @return The updated record with its new rank
+    */
   def changeRankTo(id: K, rank: R): F[Row]
 
   /**
