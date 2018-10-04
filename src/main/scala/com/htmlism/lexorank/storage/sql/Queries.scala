@@ -7,7 +7,8 @@ import doobie.implicits._
 /**
   * Static in principle. Constructed to bind key and rank types with evidence.
   */
-class Queries[K, R] {
+class Queries[K: Meta, R: Meta] {
+
   /**
     * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
     */
@@ -68,6 +69,7 @@ class Queries[K, R] {
           SET
             rank = $to
           WHERE
+            id = $id and
             rank = $from
        """.update
 
