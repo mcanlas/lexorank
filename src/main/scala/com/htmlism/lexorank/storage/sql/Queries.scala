@@ -6,6 +6,9 @@ import doobie.implicits._
 
 /**
   * Static in principle. Constructed to bind key and rank types with evidence.
+  *
+  * @tparam K The primary key type
+  * @tparam R The ranking type
   */
 class Queries[K: Meta, R: Meta] {
 
@@ -77,10 +80,4 @@ class Queries[K: Meta, R: Meta] {
             rank = $from
        """.update
 
-}
-
-import shapeless._
-class MinimalBad[A: Meta, B: Meta] {
-  def bad(a: A, b: B)(implicit ev: Param[A :: B :: HNil]): Update0 =
-    sql"""$a $b""".update
 }
