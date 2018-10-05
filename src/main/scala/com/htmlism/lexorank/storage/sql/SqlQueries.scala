@@ -5,18 +5,21 @@ import doobie._
 import doobie.implicits._
 
 /**
-  * Static in principle. Constructed to bind key and rank types with evidence.
+  * A bundle of Doobie SQL queries. Static in principle, but constructed to centralize key and rank types with evidence.
   *
   * @tparam K The primary key type
   * @tparam R The ranking type
   */
-class Queries[K: Meta, R: Meta] {
+class SqlQueries[K: Meta, R: Meta] {
 
   /**
     * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
     */
   type Row = (K, Record[R])
 
+  /**
+    * Used to echo back a row that was either newly inserted or recently updated.
+    */
   def selectOne(id: K): Query0[Row] =
     sql"""
           SELECT
@@ -29,6 +32,11 @@ class Queries[K: Meta, R: Meta] {
             id = $id
        """.query[Row]
 
+  /**
+    * The primary query used when powering a listing UI.
+    *
+    * If the entities had some subdivision like organization, this method would accept an organization as a filter.
+    */
   def selectAllRows: Query0[Row] =
     sql"""
           SELECT
@@ -39,6 +47,11 @@ class Queries[K: Meta, R: Meta] {
             rankable_entities
        """.query[Row]
 
+  /**
+    * Used to obtain a snapshot of the current rankings.
+    *
+    * If the entities had some subdivision like organization, this method would accept an organization as a filter.
+    */
   def selectAllRowsForUpdate: Query0[Row] =
     sql"""
           SELECT
@@ -52,6 +65,9 @@ class Queries[K: Meta, R: Meta] {
 
   import shapeless._
 
+  /**
+    * Used to insert a new record at a given rank.
+    */
   def insert(payload: String, rank: R)(implicit ev: Param[String :: R :: HNil]): Update0 =
     sql"""
           INSERT INTO
@@ -59,6 +75,9 @@ class Queries[K: Meta, R: Meta] {
           VALUES (NULL, $payload, $rank)
        """.update
 
+  /**
+    * Used to update the rank of a record after space has been made for that rank.
+    */
   def updateRankAfterCascade(id: K, rank: R)(implicit ev: Param[R :: K :: HNil]): Update0 =
     sql"""
           UPDATE
@@ -69,6 +88,9 @@ class Queries[K: Meta, R: Meta] {
             rank = $id
        """.update
 
+  /**
+    * Used as the fundamental unit for a cascade.
+    */
   def updateRankInsideCascade(id: K, from: R, to: R)(implicit ev: Param[R :: K :: R :: HNil]): Update0 =
     sql"""
           UPDATE

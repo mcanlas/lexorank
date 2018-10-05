@@ -15,7 +15,7 @@ class QueriesSpec[K, R] extends FreeSpec with IOChecker {
       .unsafeRunSync()
 
   private val q =
-    new Queries[PosInt, PosInt]
+    new SqlQueries[PosInt, PosInt]
 
   private val pk = PosInt(1)
   private val r  = PosInt(1)
