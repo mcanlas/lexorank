@@ -7,7 +7,6 @@ import cats.effect._
 import doobie._
 import doobie.implicits._
 import doobie.h2._
-import doobie.h2.implicits._
 import doobie.util.fragment.Fragment
 
 object Preload {

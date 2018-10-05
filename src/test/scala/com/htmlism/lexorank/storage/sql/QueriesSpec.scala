@@ -5,7 +5,6 @@ package sql
 import cats.effect.IO
 
 import doobie._
-import doobie.implicits._
 import doobie.scalatest._
 import org.scalatest._
 
@@ -18,9 +17,12 @@ class QueriesSpec[K, R] extends FreeSpec with IOChecker {
   private val q =
     new Queries[PosInt, PosInt]
 
+  private val pk = PosInt(1)
+  private val r  = PosInt(1)
+
   "type safe queries in h2" - {
     "select one" in {
-      check(q.selectOne(PosInt(4)))
+      check(q.selectOne(pk))
     }
 
     "select all rows" in {
@@ -32,15 +34,15 @@ class QueriesSpec[K, R] extends FreeSpec with IOChecker {
     }
 
     "insert" in {
-      check(q.insert("", PosInt(4)))
+      check(q.insert("", pk))
     }
 
     "update rank for last mile" in {
-      check(q.updateRankAfterCascade(PosInt(4), PosInt(5)))
+      check(q.updateRankAfterCascade(pk, r))
     }
 
     "update rank in cascade" in {
-      check(q.updateRankInsideCascade(PosInt(5), PosInt(4), PosInt(5)))
+      check(q.updateRankInsideCascade(pk, r, r))
     }
   }
 }
