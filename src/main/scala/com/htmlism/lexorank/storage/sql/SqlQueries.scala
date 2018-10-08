@@ -84,7 +84,7 @@ object SqlQueries {
           SET
             rank = $rank
           WHERE
-            rank = $id
+            id = $id
        """.update
 
   /**

@@ -2,6 +2,7 @@ package com.htmlism.lexorank
 package storage
 package sql
 
+import cats.effect._
 import cats.implicits._
 
 import doobie._
@@ -26,8 +27,23 @@ class SqlStorage[K: Meta, R: Meta] extends Storage[ConnectionIO, K, R] {
     SqlQueries.insert(payload, rank).withUniqueGeneratedKeys[K]("id") >>= (q.selectOne(_).unique)
 
   def changeRankTo(id: K, rank: R): ConnectionIO[(K, Record[R])] =
-    SqlQueries.updateRankAfterCascade(id, rank).run >> q.selectOne(id).unique
+    SqlQueries
+      .updateRankAfterCascade(id, rank)
+      .run
+      .flatTap(assertOneAffected("last mile")) >> q.selectOne(id).unique
 
   def applyUpdateInCascade(up: Update): ConnectionIO[Unit] =
-    SqlQueries.updateRankInsideCascade(up.pk, up.from, up.to).run.void
+    SqlQueries
+      .updateRankInsideCascade(up.pk, up.from, up.to)
+      .run
+      .flatTap(assertOneAffected("cascade"))
+      .void
+
+  /**
+    * This might not be a good idea of MySQL reports zero rows updated for rows that don't physically need updating.
+    */
+  private def assertOneAffected(in: String)(n: Int) =
+    Async[ConnectionIO].delay {
+      assert(n == 1, s"one row was updated in $in")
+    }
 }
