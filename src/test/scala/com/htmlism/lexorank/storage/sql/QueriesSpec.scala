@@ -34,15 +34,15 @@ class QueriesSpec[K, R] extends FreeSpec with IOChecker {
     }
 
     "insert" in {
-      check(q.insert("", pk))
+      check(SqlQueries.insert("", pk))
     }
 
     "update rank for last mile" in {
-      check(q.updateRankAfterCascade(pk, r))
+      check(SqlQueries.updateRankAfterCascade(pk, r))
     }
 
     "update rank in cascade" in {
-      check(q.updateRankInsideCascade(pk, r, r))
+      check(SqlQueries.updateRankInsideCascade(pk, r, r))
     }
   }
 }

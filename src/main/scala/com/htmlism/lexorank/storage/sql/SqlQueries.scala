@@ -37,38 +37,37 @@ class SqlQueries[K: Meta, R: Meta] {
     *
     * If the entities had some subdivision like organization, this method would accept an organization as a filter.
     */
-  def selectAllRows: Query0[Row] =
+  def selectAllRows: Query0[(K, R)] =
     sql"""
           SELECT
             id,
-            payload,
             rank
           FROM
             rankable_entities
-       """.query[Row]
+       """.query[(K, R)]
 
   /**
     * Used to obtain a snapshot of the current rankings.
     *
     * If the entities had some subdivision like organization, this method would accept an organization as a filter.
     */
-  def selectAllRowsForUpdate: Query0[Row] =
+  def selectAllRowsForUpdate: Query0[(K, R)] =
     sql"""
           SELECT
             id,
-            payload,
             rank
           FROM
             rankable_entities
           FOR UPDATE
-       """.query[Row]
+       """.query[(K, R)]
+}
 
-  import shapeless._
+object SqlQueries {
 
   /**
     * Used to insert a new record at a given rank.
     */
-  def insert(payload: String, rank: R)(implicit ev: Param[String :: R :: HNil]): Update0 =
+  def insert[R: Meta](payload: String, rank: R): Update0 =
     sql"""
           INSERT INTO
             rankable_entities
@@ -78,7 +77,7 @@ class SqlQueries[K: Meta, R: Meta] {
   /**
     * Used to update the rank of a record after space has been made for that rank.
     */
-  def updateRankAfterCascade(id: K, rank: R)(implicit ev: Param[R :: K :: HNil]): Update0 =
+  def updateRankAfterCascade[K: Meta, R: Meta](id: K, rank: R): Update0 =
     sql"""
           UPDATE
             rankable_entities
@@ -91,7 +90,7 @@ class SqlQueries[K: Meta, R: Meta] {
   /**
     * Used as the fundamental unit for a cascade.
     */
-  def updateRankInsideCascade(id: K, from: R, to: R)(implicit ev: Param[R :: K :: R :: HNil]): Update0 =
+  def updateRankInsideCascade[K: Meta, R: Meta](id: K, from: R, to: R): Update0 =
     sql"""
           UPDATE
             rankable_entities

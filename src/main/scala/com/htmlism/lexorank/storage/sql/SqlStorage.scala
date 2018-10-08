@@ -1,0 +1,33 @@
+package com.htmlism.lexorank
+package storage
+package sql
+
+import cats.implicits._
+
+import doobie._
+import doobie.implicits._
+
+/**
+  * @tparam F An effect type
+  * @tparam K The type for primary keys in this storage. Usually `Int`
+  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
+  */
+class SqlStorage[K: Meta, R: Meta] extends Storage[ConnectionIO, K, R] {
+  private val q =
+    new SqlQueries[K, R]
+
+  def getSnapshot: ConnectionIO[Snapshot] =
+    q.selectAllRows.to[List].map(_.toMap)
+
+  def lockSnapshot: ConnectionIO[Snapshot] =
+    q.selectAllRowsForUpdate.to[List].map(_.toMap)
+
+  def insertNewRecord(payload: String, rank: R): ConnectionIO[(K, Record[R])] =
+    SqlQueries.insert(payload, rank).withUniqueGeneratedKeys[K]("id") >>= (q.selectOne(_).unique)
+
+  def changeRankTo(id: K, rank: R): ConnectionIO[(K, Record[R])] =
+    SqlQueries.updateRankAfterCascade(id, rank).run >> q.selectOne(id).unique
+
+  def applyUpdateInCascade(up: Update): ConnectionIO[Unit] =
+    SqlQueries.updateRankInsideCascade(up.pk, up.from, up.to).run.void
+}
