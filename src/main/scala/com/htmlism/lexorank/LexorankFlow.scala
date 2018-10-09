@@ -18,7 +18,7 @@ import com.htmlism.lexorank.request._
   * @param store Persistent storage for rows, keys, and ranks
   * @param RG A strategy for generating values in `R`
   *
-  * @tparam F The outer, transactional effect type (like IO) used after interpreting programs written in `G`
+  * @tparam F The outer, transactional effect type (like `IO`) used after interpreting programs written in `G`
   * @tparam G A composable effect type for storage
   * @tparam K The type for primary keys in this storage. Usually `Int`
   * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
