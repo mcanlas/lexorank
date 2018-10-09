@@ -17,7 +17,6 @@ class LexorankH2Spec
   "a valid Insert request" should "increment size; reflect requested order; retain old order" in {
     forAll { (trio: H2StoreAndInsertRequest[PosInt, PosInt], s: String) =>
       val H2StoreAndInsertRequest(tx, store, req) = trio
-
       val flow = new LexorankFlow(tx, store, rgPosInt)
 
       val io =
@@ -59,7 +58,6 @@ class LexorankH2Spec
   "a valid Change request" should "maintain size; reflect requested order; retain old order" in {
     forAll { trio: H2StoreAndChangeRequest[PosInt, PosInt] =>
       val H2StoreAndChangeRequest(tx, store, chReq) = trio
-
       val flow = new LexorankFlow(tx, store, rgPosInt)
 
       val io =
