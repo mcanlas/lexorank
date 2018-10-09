@@ -47,7 +47,9 @@ class SqlQueries[K: Meta, R: Meta] {
        """.query[(K, R)]
 
   /**
-    * Used to obtain a snapshot of the current rankings.
+    * Used to obtain a snapshot of the current rankings during a Lexorank update. The intention is to compose this
+    * query in a transaction so that the entire keyspace is locked until the cascade is complete. At worst, a cascade
+    * could update much of the keyspace.
     *
     * If the entities had some subdivision like organization, this method would accept an organization as a filter.
     */
@@ -88,7 +90,8 @@ object SqlQueries {
        """.update
 
   /**
-    * Used as the fundamental unit for a cascade.
+    * Used as the fundamental unit for a cascade. Many instances of this query will be composed together within one
+    * cascade.
     */
   def updateRankInsideCascade[K: Meta, R: Meta](id: K, from: R, to: R): Update0 =
     sql"""
