@@ -1,7 +1,6 @@
 package com.htmlism.lexorank
-package storage
+package storage.inmemory
 
-import cats.implicits._
 import cats.effect._
 
 object InMemoryStorage {

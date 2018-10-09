@@ -7,12 +7,11 @@ import cats.effect._
 import doobie._
 import doobie.implicits._
 import doobie.h2._
-import doobie.h2.implicits._
 import doobie.util.fragment.Fragment
 
 object Preload {
   private val jdbcUrl     = "jdbc:h2:mem:"
-  private val sqlResource = "schema.sql"
+  private val sqlResource = "/schema.sql"
 
   private val resource211 =
     scala.io.Source.fromInputStream(getClass.getResourceAsStream(sqlResource))

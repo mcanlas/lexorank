@@ -1,7 +1,7 @@
 package com.htmlism.lexorank
 
 import com.htmlism.lexorank.request._
-import com.htmlism.lexorank.storage.InMemoryStorage
+import com.htmlism.lexorank.storage.inmemory.InMemoryStorage
 
 /**
   * This represents a flow instance and valid position request for that instance. The expectation is that the storage
@@ -16,7 +16,7 @@ import com.htmlism.lexorank.storage.InMemoryStorage
   * @tparam K A key type
   * @tparam R A rank type
   */
-case class StorageAndValidInsertRequest[F[_], K, R](store: InMemoryStorage[F, K, R], req: PositionRequest[K])
+case class InMemStoreAndInsertRequest[F[_], K, R](store: InMemoryStorage[F, K, R], req: PositionRequest[K])
 
 /**
   * This represents a flow instance and valid position request for that instance. The expectation is that the storage
@@ -32,4 +32,4 @@ case class StorageAndValidInsertRequest[F[_], K, R](store: InMemoryStorage[F, K,
   * @tparam K A key type
   * @tparam R A rank type
   */
-case class StorageAndValidChangeRequest[F[_], K, R](store: InMemoryStorage[F, K, R], req: ChangeRequest[K])
+case class InMemStoreAndChangeRequest[F[_], K, R](store: InMemoryStorage[F, K, R], req: ChangeRequest[K])
