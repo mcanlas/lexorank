@@ -9,9 +9,8 @@ import doobie._
 import doobie.implicits._
 
 /**
-  * @tparam F An effect type
-  * @tparam K The type for primary keys in this storage. Usually `Int`
-  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
+  * @tparam K The type for primary keys in this storage
+  * @tparam R The type for ranking items relative to one another
   */
 class SqlStorage[K: Meta, R: Meta] extends Storage[ConnectionIO, K, R] {
   private val q =
