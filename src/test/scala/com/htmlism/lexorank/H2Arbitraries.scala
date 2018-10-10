@@ -85,11 +85,9 @@ trait H2Arbitraries {
 
         val store = new SqlStorage[PosInt, R]
 
-        println("building a thing")
         xs.foreach {
           case (r, s) =>
-            val (k, rec) = store.insertNewRecord(s, r).transact(tx).unsafeRunSync()
-            println(s"$k @ $rec")
+            store.insertNewRecord(s, r).transact(tx).unsafeRunSync()
         }
 
         tx -> store
