@@ -10,9 +10,7 @@ import org.scalatest._
 
 class QueriesSpec[K, R] extends FreeSpec with IOChecker {
   def transactor: Transactor[IO] =
-    Preload
-      .within[IO]
-      .unsafeRunSync()
+    Preload.unsafeBuildTxSync
 
   private[this] val q =
     new SqlQueries[PosInt, PosInt]

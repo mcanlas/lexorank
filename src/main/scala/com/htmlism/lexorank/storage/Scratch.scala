@@ -3,10 +3,10 @@ package com.htmlism.lexorank.storage
 import cats._
 import cats.implicits._
 import cats.effect._
+import mouse.any._
 
 import doobie._
 import doobie.implicits._
-import doobie.h2._
 import doobie.util.fragment.Fragment
 
 object Preload {
@@ -22,31 +22,24 @@ object Preload {
   private[this] def runStartUpSql[F[_]: Monad](tx: Transactor[F]): F[Transactor[F]] =
     Fragment.const0(startUpSql).update.run.transact(tx).as(tx)
 
-  def within[F[_]: Async]: F[Transactor[F]] =
-    H2Transactor.newH2Transactor[F](jdbcUrl, "", "") >>= runStartUpSql[F]
+  def unsafeBuildTxSync: doobie.Transactor[IO] = {
+    val g = scala.concurrent.ExecutionContext.Implicits.global
 
-  def streamOf[F[_]: Async]: fs2.Stream[F, doobie.Transactor[F]] =
-    H2Transactor
-      .stream[F](jdbcUrl, "", "")
-      .evalMap(runStartUpSql[F])
+    implicit val cs: ContextShift[IO] = IO.contextShift(g)
+
+    org.h2.jdbcx.JdbcConnectionPool.create(jdbcUrl, "", "") |>
+      (Transactor.fromDataSource[IO](_, g, g)) |>
+      (runStartUpSql[IO](_)) |>
+      (_.unsafeRunSync())
+  }
 }
 
-object Scratch extends App {
-  Preload
-    .within[IO]
-    .flatMap { x =>
-      sql"SELECT * from rankable_entities".query[(Int, String, Int)].to[List].transact(x)
-    }
-    .map(println)
-    .unsafeRunSync()
-
-  Preload
-    .streamOf[IO]
-    .evalMap { x =>
-      sql"SELECT * from rankable_entities".query[(Int, String, Int)].to[List].transact(x)
-    }
-    .map(println)
-    .compile
-    .drain
-    .unsafeRunSync()
+object Scratch extends IOApp {
+  def run(args: List[String]): IO[ExitCode] =
+    sql"SELECT * from rankable_entities"
+      .query[(Int, String, Int)]
+      .to[List]
+      .transact(Preload.unsafeBuildTxSync)
+      .map(println)
+      .as(ExitCode.Success)
 }

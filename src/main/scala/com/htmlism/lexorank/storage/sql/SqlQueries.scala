@@ -10,7 +10,7 @@ import doobie.implicits._
   * @tparam K The primary key type
   * @tparam R The ranking type
   */
-class SqlQueries[K: Meta, R: Meta] {
+class SqlQueries[K: Get: Put, R: Get] {
 
   /**
     * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
@@ -69,7 +69,7 @@ object SqlQueries {
   /**
     * Used to insert a new record at a given rank.
     */
-  def insert[R: Meta](payload: String, rank: R): Update0 =
+  def insert[R: Put](payload: String, rank: R): Update0 =
     sql"""
           INSERT INTO
             rankable_entities
@@ -79,7 +79,7 @@ object SqlQueries {
   /**
     * Used to update the rank of a record after space has been made for that rank.
     */
-  def updateRankAfterCascade[K: Meta, R: Meta](id: K, rank: R): Update0 =
+  def updateRankAfterCascade[K: Put, R: Put](id: K, rank: R): Update0 =
     sql"""
           UPDATE
             rankable_entities
@@ -93,7 +93,7 @@ object SqlQueries {
     * Used as the fundamental unit for a cascade. Many instances of this query will be composed together within one
     * cascade.
     */
-  def updateRankInsideCascade[K: Meta, R: Meta](id: K, from: R, to: R): Update0 =
+  def updateRankInsideCascade[K: Put, R: Put](id: K, from: R, to: R): Update0 =
     sql"""
           UPDATE
             rankable_entities
