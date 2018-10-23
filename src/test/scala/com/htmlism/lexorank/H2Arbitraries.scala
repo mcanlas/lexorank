@@ -19,19 +19,19 @@ trait H2Arbitraries {
         .map(PosInt.apply)
     }
 
-  private def genInsertBefore[R: Arbitrary: Meta] =
+  private[this] def genInsertBefore[R: Arbitrary: Meta] =
     for {
       (tx, s) <- genStorageAtLeast[R](1)
       k       <- Gen.oneOf(keys(tx, s).toVector)
     } yield H2StoreAndInsertRequest(tx.trans, s, Before(k))
 
-  private def genInsertAfter[R: Arbitrary: Meta] =
+  private[this] def genInsertAfter[R: Arbitrary: Meta] =
     for {
       (tx, s) <- genStorageAtLeast[R](1)
       k       <- Gen.oneOf(keys(tx, s).toVector)
     } yield H2StoreAndInsertRequest(tx.trans, s, After(k))
 
-  private def genInsertBetween[R: Arbitrary: Meta] =
+  private[this] def genInsertBetween[R: Arbitrary: Meta] =
     for {
       (tx, s) <- genStorageAtLeast[R](2)
       k1      <- Gen.oneOf(keys(tx, s).toVector)
@@ -48,7 +48,7 @@ trait H2Arbitraries {
       Gen.oneOf(genChangeBefore[R], genChangeAfter[R], genChangeBetween[R])
     }
 
-  private def genChangeBefore[R: Arbitrary: Meta] =
+  private[this] def genChangeBefore[R: Arbitrary: Meta] =
     for {
       (tx, s) <- genStorageAtLeast[R](2)
       k1      <- Gen.oneOf(keys(tx, s).toVector)
@@ -57,7 +57,7 @@ trait H2Arbitraries {
       H2StoreAndChangeRequest(tx.trans, s, ChangeRequest(k1, Before(k2)).right.get)
     }
 
-  private def genChangeAfter[R: Arbitrary: Meta] =
+  private[this] def genChangeAfter[R: Arbitrary: Meta] =
     for {
       (tx, s) <- genStorageAtLeast[R](2)
       k1      <- Gen.oneOf(keys(tx, s).toVector)
@@ -66,7 +66,7 @@ trait H2Arbitraries {
       H2StoreAndChangeRequest(tx.trans, s, ChangeRequest(k1, After(k2)).right.get)
     }
 
-  private def genChangeBetween[R: Arbitrary: Meta] =
+  private[this] def genChangeBetween[R: Arbitrary: Meta] =
     for {
       (tx, s) <- genStorageAtLeast[R](3)
       k1      <- Gen.oneOf(keys(tx, s).toVector)
@@ -76,7 +76,7 @@ trait H2Arbitraries {
       H2StoreAndChangeRequest(tx.trans, s, ChangeRequest(k1, Between(k2, k3).right.get).right.get)
     }
 
-  private def genStorageAtLeast[R: Arbitrary: Meta](n: Int) =
+  private[this] def genStorageAtLeast[R: Arbitrary: Meta](n: Int) =
     Gen
       .nonEmptyMap(arbitrary[(R, String)])
       .filter(_.size >= n)
@@ -93,6 +93,6 @@ trait H2Arbitraries {
         tx -> store
       }
 
-  private def keys[R](tx: Transactor[IO], store: SqlStorage[PosInt, R]) =
+  private[this] def keys[R](tx: Transactor[IO], store: SqlStorage[PosInt, R]) =
     store.getSnapshot.transact(tx).unsafeRunSync().keySet
 }

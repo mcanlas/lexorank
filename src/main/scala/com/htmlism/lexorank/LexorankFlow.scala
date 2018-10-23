@@ -72,30 +72,30 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
       store.lockSnapshot >>= attemptWriteWorkflow(chReq.req, store.changeRankTo(chReq.id, _))
     }
 
-  private def attemptWriteWorkflow(req: PositionRequest[K], consumeRank: R => G[Row])(ctx: Snapshot) =
+  private[this] def attemptWriteWorkflow(req: PositionRequest[K], consumeRank: R => G[Row])(ctx: Snapshot) =
     (areRequestKeysValid(req, ctx) >>= canWeCreateANewRank(req))
       .traverse((attemptWritesToStorage(consumeRank) _).tupled)
 
   // partially applied either bifunctor for error-free flatmap in intellij
-  private def areRequestKeysValid(req: PositionRequest[K], ctx: Snapshot): OrLexorankError[Snapshot] =
+  private[this] def areRequestKeysValid(req: PositionRequest[K], ctx: Snapshot): OrLexorankError[Snapshot] =
     Either.cond(req.keys.forall(ctx.contains), ctx, errors.KeyNotInContext)
 
-  private def attemptWritesToStorage(consumeRank: R => G[Row])(xs: List[Update], newRank: R) =
+  private[this] def attemptWritesToStorage(consumeRank: R => G[Row])(xs: List[Update], newRank: R) =
     xs.traverse_(store.applyUpdateInCascade) *> consumeRank(newRank)
 
-  private def canWeCreateANewRank(req: PositionRequest[K])(ctx: Snapshot) =
+  private[this] def canWeCreateANewRank(req: PositionRequest[K])(ctx: Snapshot) =
     generateNewRank(ctx)(req) |> maybeMakeSpaceForNewRank(ctx)
 
-  private def maybeMakeSpaceForNewRank(ctx: Snapshot)(rank: R) = {
+  private[this] def maybeMakeSpaceForNewRank(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
     makeSpaceForReally(ctx, Nil, rank, None)
       .map(ups => ups -> rank)
   }
 
-  private def getStrat(rank: R, oStrat: Option[CollisionStrategy]) =
+  private[this] def getStrat(rank: R, oStrat: Option[CollisionStrategy]) =
     oStrat.getOrElse(R.collisionStrategy(rank))
 
-  private def tryMakeNewRank(rank: R)(strat: CollisionStrategy) =
+  private[this] def tryMakeNewRank(rank: R)(strat: CollisionStrategy) =
     strat match {
       case MoveUp =>
         R.increment(rank)
@@ -113,10 +113,11 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     * were already "taken".
     */
   @tailrec
-  private def makeSpaceForReally(ctx: Snapshot,
-                                 updates: List[Update],
-                                 rank: R,
-                                 previousStrategy: Option[CollisionStrategy]): List[Update] Or errors.OverflowError =
+  private[this] def makeSpaceForReally(
+      ctx: Snapshot,
+      updates: List[Update],
+      rank: R,
+      previousStrategy: Option[CollisionStrategy]): List[Update] Or errors.OverflowError =
     rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat =
@@ -148,7 +149,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     *
     * At this point after `isKeyInContext` we assume that the keys in the position request exist in the context.
     */
-  private def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R =
+  private[this] def generateNewRank(ctx: Snapshot)(req: PositionRequest[K]): R =
     req match {
       case Before(x) =>
         RG.before(ctx(x))
@@ -163,7 +164,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
         RG.anywhere
     }
 
-  private def rankCollidesAt(rank: R)(ctx: Map[K, R]) =
+  private[this] def rankCollidesAt(rank: R)(ctx: Map[K, R]) =
     ctx.find { case (_, r) => R.eq(r, rank) }.map(_._1)
 }
 

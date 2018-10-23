@@ -41,7 +41,7 @@ class SqlStorage[K: Meta, R: Meta] extends Storage[ConnectionIO, K, R] {
   /**
     * This might not be a good idea if MySQL reports zero rows updated for rows that don't physically need updating.
     */
-  private def assertOneAffected(in: String)(n: Int) =
+  private[this] def assertOneAffected(in: String)(n: Int) =
     Async[ConnectionIO].delay {
       assert(n == 1, s"one row was updated in $in")
     }

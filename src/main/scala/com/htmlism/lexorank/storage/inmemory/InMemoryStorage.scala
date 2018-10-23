@@ -82,7 +82,7 @@ class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends St
       assertUniqueRanks()
     }
 
-  private def assertUniqueRanks(): Unit =
+  private[this] def assertUniqueRanks(): Unit =
     assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
 
   /**

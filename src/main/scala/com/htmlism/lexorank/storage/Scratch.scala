@@ -19,7 +19,7 @@ object Preload {
   // `Source.fromResource` only in scala 2.12
   private[this] val startUpSql = resource211.getLines.mkString("\n")
 
-  private def runStartUpSql[F[_]: Monad](tx: Transactor[F]): F[Transactor[F]] =
+  private[this] def runStartUpSql[F[_]: Monad](tx: Transactor[F]): F[Transactor[F]] =
     Fragment.const0(startUpSql).update.run.transact(tx).as(tx)
 
   def within[F[_]: Async]: F[Transactor[F]] =
