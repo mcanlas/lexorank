@@ -16,7 +16,7 @@ class LexorankSpec
     with GeneratorDrivenPropertyChecks
     with LexorankArbitraries
     with Determinism {
-  private val tx = cats.arrow.FunctionK.id[IO]
+  private[this] val tx = cats.arrow.FunctionK.id[IO]
 
   "insertion anywhere" should "always be successful given an int-sized store" in {
     forAll { store: InMemoryStorage[IO, PosInt, PosInt] =>

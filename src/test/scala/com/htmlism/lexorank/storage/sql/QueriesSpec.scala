@@ -14,11 +14,11 @@ class QueriesSpec[K, R] extends FreeSpec with IOChecker {
       .within[IO]
       .unsafeRunSync()
 
-  private val q =
+  private[this] val q =
     new SqlQueries[PosInt, PosInt]
 
-  private val pk = PosInt(1)
-  private val r  = PosInt(1)
+  private[this] val pk = PosInt(1)
+  private[this] val r  = PosInt(1)
 
   "type safe queries in h2" - {
     "select one" in {

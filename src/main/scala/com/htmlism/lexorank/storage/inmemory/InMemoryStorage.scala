@@ -48,7 +48,7 @@ class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends St
   private var pkSeed: K =
     K.first
 
-  private val xs =
+  private[this] val xs =
     collection.mutable.Map.empty[K, Record[R]]
 
   def getSnapshot: F[Snapshot] =

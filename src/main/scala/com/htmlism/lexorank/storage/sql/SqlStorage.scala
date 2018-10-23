@@ -13,7 +13,7 @@ import doobie.implicits._
   * @tparam R The type for ranking items relative to one another
   */
 class SqlStorage[K: Meta, R: Meta] extends Storage[ConnectionIO, K, R] {
-  private val q =
+  private[this] val q =
     new SqlQueries[K, R]
 
   def getSnapshot: ConnectionIO[Snapshot] =
