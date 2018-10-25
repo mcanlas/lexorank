@@ -1,0 +1,44 @@
+@startuml
+
+actor user
+participant api
+participant lexorank
+participant storage
+
+group list request
+  user -> api : show all available rows
+    api -> lexorank : ""getRows""
+      lexorank -> storage : ""getSnapshot""
+
+  user <- api : all available rows
+end
+
+group insert request
+  user -> api : show all available rows
+    api -> lexorank : ""insertAt""
+      lexorank -> storage : ""lockSnapshot""
+
+      loop make space
+        lexorank -> storage : update rank
+      end
+
+      lexorank -> storage : ""INSERT""
+
+  user <- api : the newly created entity
+end
+
+group update request
+  user -> api : show all available rows
+    api -> lexorank : ""changePosition""
+      lexorank -> storage : ""lockSnapshot""
+
+      loop make space
+        lexorank -> storage : update rank
+      end
+
+      lexorank -> storage : ""UPDATE""
+
+  user <- api : the updated entity
+end
+
+@enduml
