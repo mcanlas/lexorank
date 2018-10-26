@@ -19,3 +19,9 @@ libraryDependencies += "org.tpolecat" %% "doobie-h2"   % doobieVersion
 libraryDependencies += "org.scalatest"  %% "scalatest"        % "3.0.5"       % "test"
 libraryDependencies += "org.tpolecat"   %% "doobie-scalatest" % doobieVersion % "test"
 libraryDependencies += "org.scalacheck" %% "scalacheck"       % "1.14.0"      % "test"
+
+// scaladoc enhancements
+scalacOptions in (Compile, doc) ++= Seq(
+  "-groups",  // enable support for grouped members
+  "-diagrams" // generate type hierarchy diagrams
+)
