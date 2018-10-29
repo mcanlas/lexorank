@@ -1,6 +1,7 @@
 package com.htmlism
 
 package object lexorank {
+
   /**
     * An infix alias for `Either`
     *
