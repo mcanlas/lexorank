@@ -32,16 +32,18 @@ object Preload {
       .transact(tx)
       .as(tx)
 
-  def unsafeBuildTxSync: doobie.Transactor[IO] = {
-    val g = scala.concurrent.ExecutionContext.Implicits.global
-
-    implicit val cs: ContextShift[IO] = IO.contextShift(g)
+  private[this] def connect = {
+    implicit val cs: ContextShift[IO] =
+      IO.contextShift(scala.concurrent.ExecutionContext.Implicits.global)
 
     Transactor
-      .fromDriverManager[IO]("org.h2.Driver", dynamicJdbcUrl) |>
+      .fromDriverManager[IO]("org.h2.Driver", dynamicJdbcUrl)
+  }
+
+  def unsafeBuildTxSync: doobie.Transactor[IO] =
+    connect |>
       runStartUpSql[IO] |>
       (_.unsafeRunSync())
-  }
 }
 
 object Scratch2 extends IOApp {
