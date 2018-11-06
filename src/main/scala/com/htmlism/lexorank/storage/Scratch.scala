@@ -10,8 +10,13 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 
 object Preload {
-  private[this] val jdbcUrl     = "jdbc:h2:mem:"
   private[this] val sqlResource = "/schema.sql"
+
+  private[this] def dynamicJdbcUrl = {
+    val randomName = scala.util.Random.alphanumeric.take(10).mkString
+
+    s"jdbc:h2:mem:$randomName;DB_CLOSE_DELAY=-1"
+  }
 
   private[this] val resource211 =
     scala.io.Source.fromInputStream(getClass.getResourceAsStream(sqlResource))
@@ -20,18 +25,45 @@ object Preload {
   private[this] val startUpSql = resource211.getLines.mkString("\n")
 
   private[this] def runStartUpSql[F[_]: Monad](tx: Transactor[F]): F[Transactor[F]] =
-    Fragment.const0(startUpSql).update.run.transact(tx).as(tx)
+    Fragment
+      .const0(startUpSql)
+      .update
+      .run
+      .transact(tx)
+      .as(tx)
 
   def unsafeBuildTxSync: doobie.Transactor[IO] = {
     val g = scala.concurrent.ExecutionContext.Implicits.global
 
     implicit val cs: ContextShift[IO] = IO.contextShift(g)
 
-    org.h2.jdbcx.JdbcConnectionPool.create(jdbcUrl, "", "") |>
-      (Transactor.fromDataSource[IO](_, g, g)) |>
-      (runStartUpSql[IO](_)) |>
+    Transactor
+      .fromDriverManager[IO]("org.h2.Driver", dynamicJdbcUrl) |>
+      runStartUpSql[IO] |>
       (_.unsafeRunSync())
   }
+}
+
+object Scratch2 extends IOApp {
+  private[this] val tx =
+    Transactor
+      .fromDriverManager[IO]("org.h2.Driver", "jdbc:h2:mem:")
+
+  private[this] def create =
+    sql"create table foo (a int)".update.run
+
+  private[this] def select =
+    sql"SELECT * from foo"
+      .query[Int]
+      .to[List]
+
+  def run(args: List[String]): IO[ExitCode] =
+    (create *> select)
+      .transact(tx)
+      .map { x =>
+        println(x); x
+      }
+      .as(ExitCode.Success)
 }
 
 object Scratch extends IOApp {

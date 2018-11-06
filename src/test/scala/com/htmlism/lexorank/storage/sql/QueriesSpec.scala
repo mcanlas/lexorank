@@ -9,7 +9,7 @@ import doobie.scalatest._
 import org.scalatest._
 
 class QueriesSpec[K, R] extends FreeSpec with IOChecker {
-  def transactor: Transactor[IO] =
+  lazy val transactor: Transactor[IO] =
     Preload.unsafeBuildTxSync
 
   private[this] val q =
