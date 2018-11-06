@@ -12,7 +12,7 @@ import doobie.implicits._
   * @tparam K The type for primary keys in this storage
   * @tparam R The type for ranking items relative to one another
   */
-class SqlStorage[K: Meta, R: Meta] extends Storage[ConnectionIO, K, R] {
+class SqlStorage[K: Get: Put, R: Get: Put] extends Storage[ConnectionIO, K, R] {
   private[this] val q =
     new SqlQueries[K, R]
 

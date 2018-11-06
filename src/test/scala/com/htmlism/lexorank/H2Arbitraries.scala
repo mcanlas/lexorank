@@ -19,36 +19,36 @@ trait H2Arbitraries {
         .map(PosInt.apply)
     }
 
-  private[this] def genInsertBefore[R: Arbitrary: Meta] =
+  private[this] def genInsertBefore[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](1)
       k       <- Gen.oneOf(keys(tx, s).toVector)
     } yield H2StoreAndInsertRequest(tx.trans, s, Before(k))
 
-  private[this] def genInsertAfter[R: Arbitrary: Meta] =
+  private[this] def genInsertAfter[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](1)
       k       <- Gen.oneOf(keys(tx, s).toVector)
     } yield H2StoreAndInsertRequest(tx.trans, s, After(k))
 
-  private[this] def genInsertBetween[R: Arbitrary: Meta] =
+  private[this] def genInsertBetween[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](2)
       k1      <- Gen.oneOf(keys(tx, s).toVector)
       k2      <- Gen.oneOf((keys(tx, s) - k1).toVector)
     } yield H2StoreAndInsertRequest(tx.trans, s, Between(k1, k2).right.get)
 
-  implicit def arbInsertPair[R: Arbitrary: Meta]: Arbitrary[H2StoreAndInsertRequest[PosInt, R]] =
+  implicit def arbInsertPair[R: Arbitrary: Get: Put]: Arbitrary[H2StoreAndInsertRequest[PosInt, R]] =
     Arbitrary {
       Gen.oneOf(genInsertBefore[R], genInsertAfter[R], genInsertBetween[R])
     }
 
-  implicit def arbChangePair[R: Arbitrary: Meta]: Arbitrary[H2StoreAndChangeRequest[PosInt, R]] =
+  implicit def arbChangePair[R: Arbitrary: Get: Put]: Arbitrary[H2StoreAndChangeRequest[PosInt, R]] =
     Arbitrary {
       Gen.oneOf(genChangeBefore[R], genChangeAfter[R], genChangeBetween[R])
     }
 
-  private[this] def genChangeBefore[R: Arbitrary: Meta] =
+  private[this] def genChangeBefore[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](2)
       k1      <- Gen.oneOf(keys(tx, s).toVector)
@@ -57,7 +57,7 @@ trait H2Arbitraries {
       H2StoreAndChangeRequest(tx.trans, s, ChangeRequest(k1, Before(k2)).right.get)
     }
 
-  private[this] def genChangeAfter[R: Arbitrary: Meta] =
+  private[this] def genChangeAfter[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](2)
       k1      <- Gen.oneOf(keys(tx, s).toVector)
@@ -66,7 +66,7 @@ trait H2Arbitraries {
       H2StoreAndChangeRequest(tx.trans, s, ChangeRequest(k1, After(k2)).right.get)
     }
 
-  private[this] def genChangeBetween[R: Arbitrary: Meta] =
+  private[this] def genChangeBetween[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](3)
       k1      <- Gen.oneOf(keys(tx, s).toVector)
@@ -76,12 +76,12 @@ trait H2Arbitraries {
       H2StoreAndChangeRequest(tx.trans, s, ChangeRequest(k1, Between(k2, k3).right.get).right.get)
     }
 
-  private[this] def genStorageAtLeast[R: Arbitrary: Meta](n: Int) =
+  private[this] def genStorageAtLeast[R: Arbitrary: Get: Put](n: Int) =
     Gen
       .nonEmptyMap(arbitrary[(R, String)])
       .filter(_.size >= n)
       .map { xs =>
-        val tx = Preload.within[IO].unsafeRunSync()
+        val tx = Preload.unsafeBuildTxSync
 
         val store = new SqlStorage[PosInt, R]
 
