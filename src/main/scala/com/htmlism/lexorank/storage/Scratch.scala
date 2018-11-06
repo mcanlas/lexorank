@@ -45,35 +45,3 @@ object Preload {
       runStartUpSql[IO] |>
       (_.unsafeRunSync())
 }
-
-object Scratch2 extends IOApp {
-  private[this] val tx =
-    Transactor
-      .fromDriverManager[IO]("org.h2.Driver", "jdbc:h2:mem:")
-
-  private[this] def create =
-    sql"create table foo (a int)".update.run
-
-  private[this] def select =
-    sql"SELECT * from foo"
-      .query[Int]
-      .to[List]
-
-  def run(args: List[String]): IO[ExitCode] =
-    (create *> select)
-      .transact(tx)
-      .map { x =>
-        println(x); x
-      }
-      .as(ExitCode.Success)
-}
-
-object Scratch extends IOApp {
-  def run(args: List[String]): IO[ExitCode] =
-    sql"SELECT * from rankable_entities"
-      .query[(Int, String, Int)]
-      .to[List]
-      .transact(Preload.unsafeBuildTxSync)
-      .map(println)
-      .as(ExitCode.Success)
-}
