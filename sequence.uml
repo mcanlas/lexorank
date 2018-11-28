@@ -1,44 +1,46 @@
 @startuml
 
 actor user
-participant api
+participant api as "REST API"
 participant lexorank
 participant storage
 
-group list request
-  user -> api : show all available rows
-    api -> lexorank : ""getRows""
-      lexorank -> storage : ""getSnapshot""
-
-  user <- api : all available rows
+group showing existing rows
+  user -> api : show all request
+    api -> lexorank : ""getRows()""
+      lexorank -> storage : ""getSnapshot()""
+      lexorank <- storage : snapshot of rows and ranks
+      user <- lexorank : rows ordered by rank
 end
 
-group insert request
-  user -> api : show all available rows
-    api -> lexorank : ""insertAt""
-      lexorank -> storage : ""lockSnapshot""
+group inserting a new row
+  user -> api : insert request
+    api -> lexorank : ""insertAt()""
+      lexorank -> storage : ""lockSnapshot()""
+      lexorank <- storage : snapshot of rows and ranks
 
-      loop make space
-        lexorank -> storage : update rank
+      loop recursive cascade
+        lexorank -> storage : ""applyUpdateInCascade()""
+        lexorank <- storage : (unit)
       end
 
-      lexorank -> storage : ""INSERT""
-
-  user <- api : the newly created entity
+      lexorank -> storage : ""insertNewRecord()""
+      user <- storage : new row
 end
 
-group update request
-  user -> api : show all available rows
-    api -> lexorank : ""changePosition""
-      lexorank -> storage : ""lockSnapshot""
+group updating an existing row
+  user -> api : update request
+    api -> lexorank : ""changePosition()""
+      lexorank -> storage : ""lockSnapshot()""
+      lexorank <- storage : snapshot of rows and ranks
 
-      loop make space
-        lexorank -> storage : update rank
+      loop recursive cascade
+        lexorank -> storage : ""applyUpdateInCascade()""
+        lexorank <- storage : (unit)
       end
 
-      lexorank -> storage : ""UPDATE""
-
-  user <- api : the updated entity
+      lexorank -> storage : ""changeRankTo()""
+      user <- storage : updated row
 end
 
 @enduml
