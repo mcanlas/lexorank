@@ -17,7 +17,7 @@ group inserting a new row
   user -> api : insert request
     api -> lexorank : ""insertAt()""
       lexorank -> storage : ""lockSnapshot()""
-      lexorank <- storage : snapshot of rows and ranks0
+      lexorank <- storage : snapshot of rows and ranks
 
       loop recursive cascade
         lexorank -> storage : ""applyUpdateInCascade()""
