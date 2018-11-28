@@ -2,22 +2,22 @@
 
 actor user
 participant api as "REST API"
-participant lexorank
-participant storage
+participant lexorank as "Lexorank Flow"
+participant storage as "Relational Storage"
 
 group showing existing rows
   user -> api : show all request
     api -> lexorank : ""getRows()""
       lexorank -> storage : ""getSnapshot()""
       lexorank <- storage : snapshot of rows and ranks
-      user <- lexorank : rows ordered by rank
+    api <- lexorank : rows ordered by rank
 end
 
 group inserting a new row
   user -> api : insert request
     api -> lexorank : ""insertAt()""
       lexorank -> storage : ""lockSnapshot()""
-      lexorank <- storage : snapshot of rows and ranks
+      lexorank <- storage : snapshot of rows and ranks0
 
       loop recursive cascade
         lexorank -> storage : ""applyUpdateInCascade()""
@@ -25,7 +25,7 @@ group inserting a new row
       end
 
       lexorank -> storage : ""insertNewRecord()""
-      user <- storage : new row
+    api <- storage : new row
 end
 
 group updating an existing row
@@ -40,7 +40,7 @@ group updating an existing row
       end
 
       lexorank -> storage : ""changeRankTo()""
-      user <- storage : updated row
+    api <- storage : updated row
 end
 
 @enduml
