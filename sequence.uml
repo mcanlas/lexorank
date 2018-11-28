@@ -1,0 +1,46 @@
+@startuml
+
+actor user
+participant api as "REST API"
+participant lexorank as "Lexorank Flow"
+participant storage as "Relational Storage"
+
+group showing existing rows
+  user -> api : show all request
+    api -> lexorank : ""getRows()""
+      lexorank -> storage : ""getSnapshot()""
+      lexorank <- storage : snapshot of rows and ranks
+    api <- lexorank : rows ordered by rank
+end
+
+group inserting a new row
+  user -> api : insert request
+    api -> lexorank : ""insertAt()""
+      lexorank -> storage : ""lockSnapshot()""
+      lexorank <- storage : snapshot of rows and ranks
+
+      loop recursive cascade
+        lexorank -> storage : ""applyUpdateInCascade()""
+        lexorank <- storage : (unit)
+      end
+
+      lexorank -> storage : ""insertNewRecord()""
+    api <- storage : new row
+end
+
+group updating an existing row
+  user -> api : update request
+    api -> lexorank : ""changePosition()""
+      lexorank -> storage : ""lockSnapshot()""
+      lexorank <- storage : snapshot of rows and ranks
+
+      loop recursive cascade
+        lexorank -> storage : ""applyUpdateInCascade()""
+        lexorank <- storage : (unit)
+      end
+
+      lexorank -> storage : ""changeRankTo()""
+    api <- storage : updated row
+end
+
+@enduml
