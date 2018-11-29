@@ -64,10 +64,8 @@ class LexorankH2Spec
 
       val io =
         for {
-          bef <- tx(store.getSnapshot)
           xs1 <- flow.getRows
           or  <- flow.changePosition(chReq)
-          aft <- tx(store.getSnapshot)
           xs2 <- flow.getRows
         } yield {
           inside(or) {
