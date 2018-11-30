@@ -15,9 +15,9 @@ group showing existing rows
       lexorank -> storage : ""getSnapshot()""
       activate storage
 
-      lexorank <- storage : snapshot of rows and ranks
+      lexorank <-- storage : snapshot of rows and ranks
       deactivate storage
-    api <- lexorank : rows ordered by rank
+    api <-- lexorank : rows ordered by rank
     deactivate lexorank
   deactivate api
 end
@@ -29,16 +29,16 @@ group inserting a new row
     activate lexorank
       lexorank -> storage : ""lockSnapshot()""
       activate storage
-      lexorank <- storage : snapshot of rows and ranks
+      lexorank <-- storage : snapshot of rows and ranks
 
       loop recursive cascade
         lexorank -> storage : ""applyUpdateInCascade()""
       end
 
       lexorank -> storage : ""insertNewRecord()""
-      lexorank <- storage : new row
+      lexorank <-- storage : new row
       deactivate storage
-    api <- lexorank : new row
+    api <-- lexorank : new row
     deactivate lexorank
     deactivate api
 end
@@ -49,16 +49,16 @@ group updating an existing row
     api -> lexorank : ""changePosition()""
       lexorank -> storage : ""lockSnapshot()""
       activate storage
-      lexorank <- storage : snapshot of rows and ranks
+      lexorank <-- storage : snapshot of rows and ranks
 
       loop recursive cascade
         lexorank -> storage : ""applyUpdateInCascade()""
       end
 
       lexorank -> storage : ""changeRankTo()""
-      lexorank <- storage : updated row
+      lexorank <-- storage : updated row
       deactivate storage
-    api <- lexorank : updated row
+    api <-- lexorank : updated row
     deactivate api
 end
 
