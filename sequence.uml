@@ -7,40 +7,57 @@ participant storage as "Relational Storage"
 
 group showing existing rows
   user -> api : show all request
+  activate api
     api -> lexorank : ""getRows()""
+    activate lexorank
       lexorank -> storage : ""getSnapshot()""
+      activate storage
+
       lexorank <- storage : snapshot of rows and ranks
+      deactivate storage
     api <- lexorank : rows ordered by rank
+    deactivate lexorank
+  deactivate api
 end
 
 group inserting a new row
   user -> api : insert request
+    activate api
     api -> lexorank : ""insertAt()""
+    activate lexorank
       lexorank -> storage : ""lockSnapshot()""
+      activate storage
       lexorank <- storage : snapshot of rows and ranks
 
       loop recursive cascade
         lexorank -> storage : ""applyUpdateInCascade()""
-        lexorank <- storage : (unit)
       end
 
       lexorank -> storage : ""insertNewRecord()""
-    api <- storage : new row
+      lexorank <- storage : new row
+      deactivate storage
+    api <- lexorank : new row
+    deactivate lexorank
+    deactivate api
 end
 
 group updating an existing row
   user -> api : update request
+    activate api
     api -> lexorank : ""changePosition()""
       lexorank -> storage : ""lockSnapshot()""
+      activate storage
       lexorank <- storage : snapshot of rows and ranks
 
       loop recursive cascade
         lexorank -> storage : ""applyUpdateInCascade()""
-        lexorank <- storage : (unit)
       end
 
       lexorank -> storage : ""changeRankTo()""
-    api <- storage : updated row
+      lexorank <- storage : updated row
+      deactivate storage
+    api <- lexorank : updated row
+    deactivate api
 end
 
 @enduml
