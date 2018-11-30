@@ -32,7 +32,7 @@ group inserting a new row
       lexorank <-- storage : snapshot of rows and ranks
 
       loop recursive cascade
-        lexorank -> storage : ""applyUpdateInCascade()""
+        lexorank ->o storage : ""applyUpdateInCascade()""
       end
 
       lexorank -> storage : ""insertNewRecord()""
@@ -52,7 +52,7 @@ group updating an existing row
       lexorank <-- storage : snapshot of rows and ranks
 
       loop recursive cascade
-        lexorank -> storage : ""applyUpdateInCascade()""
+        lexorank ->o storage : ""applyUpdateInCascade()""
       end
 
       lexorank -> storage : ""changeRankTo()""
