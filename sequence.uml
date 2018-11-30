@@ -1,5 +1,7 @@
 @startuml
 
+title Lexorank workflows
+
 actor user
 participant api as "REST API"
 participant lexorank as "Lexorank Flow"
