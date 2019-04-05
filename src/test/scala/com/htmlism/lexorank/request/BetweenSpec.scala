@@ -6,8 +6,6 @@ import cats.instances.int._
 import org.scalatest._
 import org.scalatest.prop._
 
-import com.htmlism.lexorank.request._
-
 class BetweenSpec
     extends FlatSpec
     with Matchers
