@@ -4,14 +4,14 @@ import doobie.implicits._
 
 import com.htmlism.lexorank.request._
 import org.scalatest._
-import org.scalatest.prop._
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 class LexorankH2Spec
     extends FlatSpec
     with Matchers
     with Inside
     with H2Arbitraries
-    with GeneratorDrivenPropertyChecks
+    with ScalaCheckDrivenPropertyChecks
     with Determinism {
 
   "a valid Insert request" should "increment size; reflect requested order; retain old order" in {

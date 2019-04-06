@@ -4,7 +4,7 @@ package request
 import cats.instances.int._
 
 import org.scalatest._
-import org.scalatest.prop._
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 class BetweenSpec
     extends FlatSpec
@@ -12,7 +12,7 @@ class BetweenSpec
     with Inside
     with OptionValues
     with EitherValues
-    with GeneratorDrivenPropertyChecks {
+    with ScalaCheckDrivenPropertyChecks {
   "valid pairs" should "construct properly" in {
     forAll { (x: Int, y: Int) =>
       whenever(x != y) {

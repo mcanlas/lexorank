@@ -4,7 +4,7 @@ package request
 import cats.instances.int._
 
 import org.scalatest._
-import org.scalatest.prop._
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 class ChangeRequestSpec
     extends FlatSpec
@@ -12,7 +12,7 @@ class ChangeRequestSpec
     with Inside
     with OptionValues
     with EitherValues
-    with GeneratorDrivenPropertyChecks
+    with ScalaCheckDrivenPropertyChecks
     with LexorankArbitraries {
   "valid pairs" should "construct properly" in {
     forAll { (x: Int, req: PositionRequest[Int]) =>

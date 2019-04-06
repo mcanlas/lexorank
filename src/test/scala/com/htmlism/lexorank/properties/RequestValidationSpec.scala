@@ -4,7 +4,7 @@ package properties
 import cats.effect._
 
 import org.scalatest._
-import org.scalatest.prop._
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import com.htmlism.lexorank.request._
 import com.htmlism.lexorank.storage.inmemory.InMemoryStorage
@@ -12,7 +12,7 @@ import com.htmlism.lexorank.storage.inmemory.InMemoryStorage
 class RequestValidationSpec
     extends FlatSpec
     with Matchers
-    with GeneratorDrivenPropertyChecks
+    with ScalaCheckDrivenPropertyChecks
     with LexorankArbitraries
     with Inside
     with Determinism {

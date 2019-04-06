@@ -4,7 +4,7 @@ import cats.implicits._
 import cats.effect._
 
 import org.scalatest._
-import org.scalatest.prop._
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import com.htmlism.lexorank.request._
 import com.htmlism.lexorank.storage.inmemory.InMemoryStorage
@@ -13,7 +13,7 @@ class LexorankSpec
     extends FlatSpec
     with Matchers
     with Inside
-    with GeneratorDrivenPropertyChecks
+    with ScalaCheckDrivenPropertyChecks
     with LexorankArbitraries
     with Determinism {
   private[this] val tx = cats.arrow.FunctionK.id[IO]
