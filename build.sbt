@@ -11,7 +11,7 @@ initialCommands in console := "import com.htmlism.lexorank._"
 scalacOptions += "-Ypartial-unification"
 
 // for compatibility, allow doobie to dictate what version of cats and cats effect to use
-libraryDependencies += "org.typelevel" %% "mouse" % "0.21"
+libraryDependencies += "org.typelevel" %% "mouse" % "0.22"
 
 libraryDependencies += "org.tpolecat" %% "doobie-core" % doobieVersion
 libraryDependencies += "org.tpolecat" %% "doobie-h2"   % doobieVersion
