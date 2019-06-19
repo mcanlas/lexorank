@@ -1,6 +1,5 @@
 package com.htmlism.lexorank.storage
 
-import cats._
 import cats.implicits._
 import cats.effect._
 import mouse.any._
@@ -10,6 +9,8 @@ import doobie.implicits._
 import doobie.util.fragment.Fragment
 
 object Preload {
+  type BracketThrowable[F[_]] = Bracket[F, Throwable]
+
   private[this] val sqlResource = "schema.sql"
 
   private[this] def dynamicJdbcUrl = {
@@ -20,7 +21,7 @@ object Preload {
 
   private[this] val startUpSql = ResourceLoader.load(sqlResource).getLines.mkString("\n")
 
-  private[this] def runStartUpSql[F[_]: Monad](tx: Transactor[F]): F[Transactor[F]] =
+  private[this] def runStartUpSql[F[_]: BracketThrowable](tx: Transactor[F]): F[Transactor[F]] =
     Fragment
       .const0(startUpSql)
       .update
