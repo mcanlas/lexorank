@@ -1,4 +1,4 @@
-lazy val doobieVersion = "0.7.0"
+lazy val doobieVersion = "0.8.0-M3"
 
 scalafmtOnCompile := true
 
