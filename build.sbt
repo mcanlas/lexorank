@@ -16,7 +16,7 @@ libraryDependencies += "org.typelevel" %% "mouse" % "0.23"
 libraryDependencies += "org.tpolecat" %% "doobie-core" % doobieVersion
 libraryDependencies += "org.tpolecat" %% "doobie-h2"   % doobieVersion
 
-libraryDependencies += "org.scalatest"  %% "scalatest"        % "3.0.8"       % "test"
+libraryDependencies += "org.scalatest"  %% "scalatest"        % "3.1.0"       % "test"
 libraryDependencies += "org.tpolecat"   %% "doobie-scalatest" % doobieVersion % "test"
 libraryDependencies += "org.scalacheck" %% "scalacheck"       % "1.14.0"      % "test"
 
