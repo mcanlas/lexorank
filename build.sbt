@@ -16,7 +16,7 @@ libraryDependencies += "org.tpolecat" %% "doobie-h2"   % doobieVersion
 libraryDependencies += "org.scalatest"  %% "scalatest"        % "3.1.1"       % "test"
 libraryDependencies += "org.tpolecat"   %% "doobie-scalatest" % doobieVersion % "test"
 libraryDependencies += "org.scalacheck" %% "scalacheck"       % "1.14.2"      % "test"
-libraryDependencies += "org.scalatestplus" %% "scalacheck-1-14" % "3.1.1.1"   % "test"
+libraryDependencies += "org.scalatestplus" %% "scalacheck-1-14" % "3.1.1.2"   % "test"
 
 // scaladoc enhancements
 scalacOptions in (Compile, doc) ++= Seq(
