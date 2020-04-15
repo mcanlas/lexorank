@@ -40,7 +40,7 @@ class LexorankSpec
     val flow  = new LexorankFlow(tx, store, UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
-      println(n + ":")
+      println(n.toString + ":")
       flow
         .insertAt("", Anywhere)
         .unsafeRunSync()

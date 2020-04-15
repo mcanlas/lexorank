@@ -39,7 +39,10 @@ trait LexorankArbitraries {
         } yield (x, req)
 
       xy.filter { case (x, req) => !req.keys.contains(x) }
-        .map { case (x, req) => ChangeRequest(x, req).right.get }
+        .map {
+          case (x, req) =>
+            ChangeRequest(x, req).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+        }
 
     }
 
@@ -53,7 +56,7 @@ trait LexorankArbitraries {
 
       xy.filter { case (x, y) => x != y }
         .map((Between.apply[A] _).tupled)
-        .map(_.right.get)
+        .map(_.getOrElse(throw new UnsupportedOperationException("expeced valid Between")))
     }
 
   implicit def arbBefore[A: Arbitrary]: Arbitrary[Before[A]] =
@@ -89,7 +92,10 @@ trait LexorankArbitraries {
       s  <- genStorageAtLeast[F, K, R](2)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
-    } yield InMemStoreAndInsertRequest(s, Between(k1, k2).right.get)
+    } yield InMemStoreAndInsertRequest(
+      s,
+      Between(k1, k2).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+    )
 
   implicit def arbInsertPair[F[_]: Sync, K: Eq: KeyLike, R: Arbitrary]: Arbitrary[InMemStoreAndInsertRequest[F, K, R]] =
     Arbitrary {
@@ -107,7 +113,10 @@ trait LexorankArbitraries {
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
     } yield {
-      InMemStoreAndChangeRequest(s, ChangeRequest(k1, Before(k2)).right.get)
+      InMemStoreAndChangeRequest(
+        s,
+        ChangeRequest(k1, Before(k2)).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+      )
     }
 
   private[this] def genChangeAfter[F[_]: Sync, K: Eq: KeyLike, R: Arbitrary] =
@@ -116,7 +125,10 @@ trait LexorankArbitraries {
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
     } yield {
-      InMemStoreAndChangeRequest(s, ChangeRequest(k1, After(k2)).right.get)
+      InMemStoreAndChangeRequest(
+        s,
+        ChangeRequest(k1, After(k2)).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+      )
     }
 
   private[this] def genChangeBetween[F[_]: Sync, K: Eq: KeyLike, R: Arbitrary] =
@@ -126,7 +138,11 @@ trait LexorankArbitraries {
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       k3 <- Gen.oneOf((s.dump.keys.toSet - k1 - k2).toVector)
     } yield {
-      InMemStoreAndChangeRequest(s, ChangeRequest(k1, Between(k2, k3).right.get).right.get)
+      InMemStoreAndChangeRequest(
+        s,
+        ChangeRequest(k1, Between(k2, k3).getOrElse(throw new UnsupportedOperationException("expeced valid Between")))
+          .getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+      )
     }
 
   private[this] def genStorageAtLeast[F[_]: Sync, K: KeyLike, R: Arbitrary](n: Int) =

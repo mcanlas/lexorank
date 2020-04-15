@@ -36,7 +36,11 @@ trait H2Arbitraries {
       (tx, s) <- genStorageAtLeast[R](2)
       k1      <- Gen.oneOf(keys(tx, s).toVector)
       k2      <- Gen.oneOf((keys(tx, s) - k1).toVector)
-    } yield H2StoreAndInsertRequest(tx.trans, s, Between(k1, k2).right.get)
+    } yield H2StoreAndInsertRequest(
+      tx.trans,
+      s,
+      Between(k1, k2).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+    )
 
   implicit def arbInsertPair[R: Arbitrary: Get: Put]: Arbitrary[H2StoreAndInsertRequest[PosInt, R]] =
     Arbitrary {
@@ -54,7 +58,11 @@ trait H2Arbitraries {
       k1      <- Gen.oneOf(keys(tx, s).toVector)
       k2      <- Gen.oneOf((keys(tx, s) - k1).toVector)
     } yield {
-      H2StoreAndChangeRequest(tx.trans, s, ChangeRequest(k1, Before(k2)).right.get)
+      H2StoreAndChangeRequest(
+        tx.trans,
+        s,
+        ChangeRequest(k1, Before(k2)).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+      )
     }
 
   private[this] def genChangeAfter[R: Arbitrary: Get: Put] =
@@ -63,7 +71,11 @@ trait H2Arbitraries {
       k1      <- Gen.oneOf(keys(tx, s).toVector)
       k2      <- Gen.oneOf((keys(tx, s) - k1).toVector)
     } yield {
-      H2StoreAndChangeRequest(tx.trans, s, ChangeRequest(k1, After(k2)).right.get)
+      H2StoreAndChangeRequest(
+        tx.trans,
+        s,
+        ChangeRequest(k1, After(k2)).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+      )
     }
 
   private[this] def genChangeBetween[R: Arbitrary: Get: Put] =
@@ -73,7 +85,12 @@ trait H2Arbitraries {
       k2      <- Gen.oneOf((keys(tx, s) - k1).toVector)
       k3      <- Gen.oneOf((keys(tx, s) - k1 - k2).toVector)
     } yield {
-      H2StoreAndChangeRequest(tx.trans, s, ChangeRequest(k1, Between(k2, k3).right.get).right.get)
+      H2StoreAndChangeRequest(
+        tx.trans,
+        s,
+        ChangeRequest(k1, Between(k2, k3).getOrElse(throw new UnsupportedOperationException("expeced valid Between")))
+          .getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+      )
     }
 
   private[this] def genStorageAtLeast[R: Arbitrary: Get: Put](n: Int) =
