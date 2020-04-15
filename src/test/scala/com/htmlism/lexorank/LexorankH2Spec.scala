@@ -4,10 +4,12 @@ import doobie.implicits._
 
 import com.htmlism.lexorank.request._
 import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 class LexorankH2Spec
-    extends FlatSpec
+    extends AnyFlatSpec
     with Matchers
     with Inside
     with H2Arbitraries

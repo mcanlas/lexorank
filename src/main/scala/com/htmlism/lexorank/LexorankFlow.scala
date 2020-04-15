@@ -24,7 +24,8 @@ import com.htmlism.lexorank.request._
   * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
   */
 class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R], RG: RankGenerator[R])(
-    implicit R: Rankable[R]) {
+    implicit R: Rankable[R]
+) {
 
   /**
     * Conceptually a row in a relational database, containing a primary, a payload, and a rank.
@@ -118,7 +119,8 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
       ctx: Snapshot,
       updates: List[Update],
       rank: R,
-      previousStrategy: Option[CollisionStrategy]): List[Update] Or errors.OverflowError =
+      previousStrategy: Option[CollisionStrategy]
+  ): List[Update] Or errors.OverflowError =
     rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat =

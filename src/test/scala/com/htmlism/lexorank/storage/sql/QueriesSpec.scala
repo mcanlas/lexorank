@@ -6,9 +6,9 @@ import cats.effect.IO
 
 import doobie._
 import doobie.scalatest._
-import org.scalatest._
+import org.scalatest.freespec.AnyFreeSpec
 
-class QueriesSpec[K, R] extends FreeSpec with IOChecker {
+class QueriesSpec[K, R] extends AnyFreeSpec with IOChecker {
   lazy val transactor: Transactor[IO] =
     Preload.unsafeBuildTxSync
 

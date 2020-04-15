@@ -4,13 +4,15 @@ import cats.implicits._
 import cats.effect._
 
 import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 import com.htmlism.lexorank.request._
 import com.htmlism.lexorank.storage.inmemory.InMemoryStorage
 
 class LexorankSpec
-    extends FlatSpec
+    extends AnyFlatSpec
     with Matchers
     with Inside
     with ScalaCheckDrivenPropertyChecks

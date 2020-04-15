@@ -4,10 +4,12 @@ package request
 import cats.instances.int._
 
 import org.scalatest._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 class ChangeRequestSpec
-    extends FlatSpec
+    extends AnyFlatSpec
     with Matchers
     with Inside
     with OptionValues
