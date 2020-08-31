@@ -19,7 +19,7 @@ object Preload {
     s"jdbc:h2:mem:$randomName;DB_CLOSE_DELAY=-1"
   }
 
-  private[this] val startUpSql = ResourceLoader.load(sqlResource).getLines.mkString("\n")
+  private[this] val startUpSql = ResourceLoader.load(sqlResource).getLines().mkString("\n")
 
   private[this] def runStartUpSql[F[_]: BracketThrowable](tx: Transactor[F]): F[Transactor[F]] =
     Fragment

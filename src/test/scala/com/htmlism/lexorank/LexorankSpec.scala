@@ -53,9 +53,9 @@ class LexorankSpec
 
       sortedDump should contain theSameElementsInOrderAs expected
 
-      println
-      println
-      println
+      println()
+      println()
+      println()
     }
 
     store.size shouldBe limit
