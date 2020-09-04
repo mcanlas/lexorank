@@ -2,7 +2,6 @@ package com.htmlism.lexorank
 package request
 
 import cats.instances.int._
-
 import org.scalatest._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

@@ -2,7 +2,6 @@ package com.htmlism.lexorank
 package properties
 
 import cats.effect._
-
 import org.scalatest._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

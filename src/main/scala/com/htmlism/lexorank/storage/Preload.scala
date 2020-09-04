@@ -1,12 +1,11 @@
 package com.htmlism.lexorank.storage
 
-import cats.implicits._
 import cats.effect._
-import mouse.any._
-
+import cats.implicits._
 import doobie._
 import doobie.implicits._
 import doobie.util.fragment.Fragment
+import mouse.any._
 
 object Preload {
   type BracketThrowable[F[_]] = Bracket[F, Throwable]

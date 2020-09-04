@@ -3,7 +3,6 @@ package storage
 package sql
 
 import cats.effect.IO
-
 import doobie._
 import doobie.scalatest._
 import org.scalatest.freespec.AnyFreeSpec

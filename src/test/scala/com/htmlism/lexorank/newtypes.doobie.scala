@@ -2,7 +2,6 @@ package com.htmlism.lexorank
 
 import cats._
 import cats.effect._
-
 import doobie._
 
 import com.htmlism.lexorank.request._

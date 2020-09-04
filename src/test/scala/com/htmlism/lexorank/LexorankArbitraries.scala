@@ -2,11 +2,10 @@ package com.htmlism.lexorank
 
 import cats._
 import cats.effect._
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck._
 
 import com.htmlism.lexorank.ranking.Rankable
-import org.scalacheck._
-import org.scalacheck.Arbitrary.arbitrary
-
 import com.htmlism.lexorank.request._
 import com.htmlism.lexorank.storage.inmemory._
 
