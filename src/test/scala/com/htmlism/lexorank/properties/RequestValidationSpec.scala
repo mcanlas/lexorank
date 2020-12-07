@@ -28,9 +28,8 @@ class RequestValidationSpec
         emptyFlow
           .insertAt("", req)
           .map { either =>
-            inside(either) {
-              case Left(err) =>
-                err shouldBe errors.KeyNotInContext
+            inside(either) { case Left(err) =>
+              err shouldBe errors.KeyNotInContext
             }
           }
 
@@ -44,9 +43,8 @@ class RequestValidationSpec
         emptyFlow
           .insertAt("", req)
           .map { either =>
-            inside(either) {
-              case Left(err) =>
-                err shouldBe errors.KeyNotInContext
+            inside(either) { case Left(err) =>
+              err shouldBe errors.KeyNotInContext
             }
           }
 

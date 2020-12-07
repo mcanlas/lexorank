@@ -17,10 +17,9 @@ class BetweenSpec
   "valid pairs" should "construct properly" in {
     forAll { (x: Int, y: Int) =>
       whenever(x != y) {
-        inside(Between(x, y)) {
-          case Right(ab) =>
-            ab.a shouldBe x
-            ab.b shouldBe y
+        inside(Between(x, y)) { case Right(ab) =>
+          ab.a shouldBe x
+          ab.b shouldBe y
         }
       }
     }

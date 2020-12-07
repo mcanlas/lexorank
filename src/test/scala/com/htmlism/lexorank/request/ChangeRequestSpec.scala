@@ -18,10 +18,9 @@ class ChangeRequestSpec
   "valid pairs" should "construct properly" in {
     forAll { (x: Int, req: PositionRequest[Int]) =>
       whenever(!req.keys.contains(x)) {
-        inside(ChangeRequest(x, req)) {
-          case Right(ch) =>
-            ch.id shouldBe x
-            ch.req shouldBe req
+        inside(ChangeRequest(x, req)) { case Right(ch) =>
+          ch.id shouldBe x
+          ch.req shouldBe req
         }
       }
     }

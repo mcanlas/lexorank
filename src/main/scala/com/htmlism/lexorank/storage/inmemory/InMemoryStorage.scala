@@ -27,9 +27,8 @@ object InMemoryStorage {
   def from[F[_]: Sync, K: KeyLike, R](xs: Map[R, String]): InMemoryStorage[F, K, R] = {
     val store = new InMemoryStorage[F, K, R]
 
-    xs.foreach {
-      case (r, s) =>
-        store.addRecord(s, r)
+    xs.foreach { case (r, s) =>
+      store.addRecord(s, r)
     }
 
     store

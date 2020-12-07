@@ -38,9 +38,8 @@ trait LexorankArbitraries {
         } yield (x, req)
 
       xy.filter { case (x, req) => !req.keys.contains(x) }
-        .map {
-          case (x, req) =>
-            ChangeRequest(x, req).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+        .map { case (x, req) =>
+          ChangeRequest(x, req).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
         }
 
     }
