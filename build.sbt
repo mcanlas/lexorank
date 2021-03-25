@@ -7,9 +7,6 @@ crossScalaVersions := Seq("2.12.12", "2.13.5")
 
 initialCommands in console := "import com.htmlism.lexorank._"
 
-// for compatibility, allow doobie to dictate what version of cats and cats effect to use
-libraryDependencies += "org.typelevel" %% "mouse" % "0.25"
-
 libraryDependencies += "org.tpolecat" %% "doobie-core" % doobieVersion
 libraryDependencies += "org.tpolecat" %% "doobie-h2"   % doobieVersion
 

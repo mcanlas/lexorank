@@ -5,7 +5,6 @@ import cats.implicits._
 import doobie._
 import doobie.implicits._
 import doobie.util.fragment.Fragment
-import mouse.any._
 
 object Preload {
   type BracketThrowable[F[_]] = Bracket[F, Throwable]
@@ -37,7 +36,6 @@ object Preload {
   }
 
   def unsafeBuildTxSync: doobie.Transactor[IO] =
-    connect |>
-      runStartUpSql[IO] |>
-      (_.unsafeRunSync())
+    runStartUpSql[IO](connect)
+      .unsafeRunSync()
 }

@@ -4,7 +4,6 @@ import scala.annotation.tailrec
 
 import cats._
 import cats.implicits._
-import mouse.all._
 
 import com.htmlism.lexorank.ranking._
 import com.htmlism.lexorank.request._
@@ -86,7 +85,8 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     xs.traverse_(store.applyUpdateInCascade) *> consumeRank(newRank)
 
   private[this] def canWeCreateANewRank(req: PositionRequest[K])(ctx: Snapshot) =
-    generateNewRank(ctx)(req) |> maybeMakeSpaceForNewRank(ctx)
+    (generateNewRank(ctx)(req): Id[R])
+      .map(maybeMakeSpaceForNewRank(ctx))
 
   private[this] def maybeMakeSpaceForNewRank(ctx: Snapshot)(rank: R) = {
     println("\n\n\n\nentered this space")
@@ -127,7 +127,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
           getStrat(rank, previousStrategy)
 
         val newRankMaybe =
-          strat |> tryMakeNewRank(rank)
+          tryMakeNewRank(rank)(strat)
 
         // looks like a flatmap, but if we attempt to refactor, we will lose tail position
         newRankMaybe match {
