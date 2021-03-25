@@ -5,7 +5,7 @@ scalafmtOnCompile := true
 scalaVersion := "2.13.5"
 crossScalaVersions := Seq("2.12.12", "2.13.5")
 
-initialCommands in console := "import com.htmlism.lexorank._"
+console / initialCommands := "import com.htmlism.lexorank._"
 
 libraryDependencies += "org.tpolecat" %% "doobie-core" % doobieVersion
 libraryDependencies += "org.tpolecat" %% "doobie-h2"   % doobieVersion
