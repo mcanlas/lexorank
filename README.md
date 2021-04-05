@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/mcanlas/lexorank.svg?branch=master)](https://travis-ci.org/mcanlas/lexorank)
-
 # lexorank
 A reference implementation of a list ordering system like JIRA's Lexorank algorithm
 
