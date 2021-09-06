@@ -21,20 +21,20 @@ trait H2Arbitraries {
   private[this] def genInsertBefore[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](1)
-      k       <- Gen.oneOf(keys(tx, s).toVector)
+      k <- Gen.oneOf(keys(tx, s).toVector)
     } yield H2StoreAndInsertRequest(tx.trans, s, Before(k))
 
   private[this] def genInsertAfter[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](1)
-      k       <- Gen.oneOf(keys(tx, s).toVector)
+      k <- Gen.oneOf(keys(tx, s).toVector)
     } yield H2StoreAndInsertRequest(tx.trans, s, After(k))
 
   private[this] def genInsertBetween[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](2)
-      k1      <- Gen.oneOf(keys(tx, s).toVector)
-      k2      <- Gen.oneOf((keys(tx, s) - k1).toVector)
+      k1 <- Gen.oneOf(keys(tx, s).toVector)
+      k2 <- Gen.oneOf((keys(tx, s) - k1).toVector)
     } yield H2StoreAndInsertRequest(
       tx.trans,
       s,
@@ -54,8 +54,8 @@ trait H2Arbitraries {
   private[this] def genChangeBefore[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](2)
-      k1      <- Gen.oneOf(keys(tx, s).toVector)
-      k2      <- Gen.oneOf((keys(tx, s) - k1).toVector)
+      k1 <- Gen.oneOf(keys(tx, s).toVector)
+      k2 <- Gen.oneOf((keys(tx, s) - k1).toVector)
     } yield {
       H2StoreAndChangeRequest(
         tx.trans,
@@ -67,8 +67,8 @@ trait H2Arbitraries {
   private[this] def genChangeAfter[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](2)
-      k1      <- Gen.oneOf(keys(tx, s).toVector)
-      k2      <- Gen.oneOf((keys(tx, s) - k1).toVector)
+      k1 <- Gen.oneOf(keys(tx, s).toVector)
+      k2 <- Gen.oneOf((keys(tx, s) - k1).toVector)
     } yield {
       H2StoreAndChangeRequest(
         tx.trans,
@@ -80,9 +80,9 @@ trait H2Arbitraries {
   private[this] def genChangeBetween[R: Arbitrary: Get: Put] =
     for {
       (tx, s) <- genStorageAtLeast[R](3)
-      k1      <- Gen.oneOf(keys(tx, s).toVector)
-      k2      <- Gen.oneOf((keys(tx, s) - k1).toVector)
-      k3      <- Gen.oneOf((keys(tx, s) - k1 - k2).toVector)
+      k1 <- Gen.oneOf(keys(tx, s).toVector)
+      k2 <- Gen.oneOf((keys(tx, s) - k1).toVector)
+      k3 <- Gen.oneOf((keys(tx, s) - k1 - k2).toVector)
     } yield {
       H2StoreAndChangeRequest(
         tx.trans,

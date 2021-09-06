@@ -7,8 +7,10 @@ import doobie.implicits._
 /**
   * A bundle of Doobie SQL queries. Static in principle, but constructed to centralize key and rank types with evidence.
   *
-  * @tparam K The primary key type
-  * @tparam R The ranking type
+  * @tparam K
+  *   The primary key type
+  * @tparam R
+  *   The ranking type
   */
 class SqlQueries[K: Get: Put, R: Get] {
 
@@ -47,9 +49,9 @@ class SqlQueries[K: Get: Put, R: Get] {
        """.query[(K, R)]
 
   /**
-    * Used to obtain a snapshot of the current rankings during a Lexorank update. The intention is to compose this
-    * query in a transaction so that the entire keyspace is locked until the cascade is complete. At worst, a cascade
-    * could update much of the keyspace.
+    * Used to obtain a snapshot of the current rankings during a Lexorank update. The intention is to compose this query
+    * in a transaction so that the entire keyspace is locked until the cascade is complete. At worst, a cascade could
+    * update much of the keyspace.
     *
     * If the entities had some subdivision like organization, this method would accept an organization as a filter.
     */

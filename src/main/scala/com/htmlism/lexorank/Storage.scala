@@ -3,9 +3,12 @@ package com.htmlism.lexorank
 /**
   * Storage interface, backed by a Scala collection or SQL engine (like H2).
   *
-  * @tparam F A monadic effect type
-  * @tparam K The type for primary keys in this storage. Usually `Int`
-  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
+  * @tparam F
+  *   A monadic effect type
+  * @tparam K
+  *   The type for primary keys in this storage. Usually `Int`
+  * @tparam R
+  *   The type for ranking items relative to one another. Usually `Int` but could be something like `String`
   */
 trait Storage[F[_], K, R] {
 
@@ -34,11 +37,11 @@ trait Storage[F[_], K, R] {
   def getSnapshot: F[Snapshot]
 
   /**
-    * This, in your mind types, opens a connection to the database. It uses a "select for update" lock to hold to
-    * hold on to the entire key space, since the worst case scenario is that many of them get updated.
+    * This, in your mind types, opens a connection to the database. It uses a "select for update" lock to hold to hold
+    * on to the entire key space, since the worst case scenario is that many of them get updated.
     *
-    * Remember that your key space may also be a composite of two columns. If your rank column is `Int` and there is
-    * an "organization" column that you also key by, this only needs to lock on one organization's ranks (if your
+    * Remember that your key space may also be a composite of two columns. If your rank column is `Int` and there is an
+    * "organization" column that you also key by, this only needs to lock on one organization's ranks (if your
     * operations are always per-organization and never enforce global ranking across all organizations).
     */
   def lockSnapshot: F[Snapshot]
@@ -46,20 +49,26 @@ trait Storage[F[_], K, R] {
   /**
     * A "last mile" storage update that differentiates insert requests from change requests.
     *
-    * @param payload Arbitrary data
-    * @param rank The rank to insert this record at
+    * @param payload
+    *   Arbitrary data
+    * @param rank
+    *   The rank to insert this record at
     *
-    * @return The newly inserted record with its new primary key
+    * @return
+    *   The newly inserted record with its new primary key
     */
   def insertNewRecord(payload: String, rank: R): F[Row]
 
   /**
     * A "last mile" storage update that differentiates insert requests from change requests.
     *
-    * @param id The primary key of the record that is being updated
-    * @param rank The rank to change this record to
+    * @param id
+    *   The primary key of the record that is being updated
+    * @param rank
+    *   The rank to change this record to
     *
-    * @return The updated record with its new rank
+    * @return
+    *   The updated record with its new rank
     */
   def changeRankTo(id: K, rank: R): F[Row]
 

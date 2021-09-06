@@ -25,7 +25,7 @@ class LexorankH2Spec
       val io =
         for {
           xs1 <- flow.getRows
-          or  <- flow.insertAt(s, req)
+          or <- flow.insertAt(s, req)
           xs2 <- flow.getRows
         } yield {
           inside(or) { case Right((newPk, rec)) =>
@@ -66,7 +66,7 @@ class LexorankH2Spec
       val io =
         for {
           xs1 <- flow.getRows
-          or  <- flow.changePosition(chReq)
+          or <- flow.changePosition(chReq)
           xs2 <- flow.getRows
         } yield {
           inside(or) { case Right((echoPk, _)) =>

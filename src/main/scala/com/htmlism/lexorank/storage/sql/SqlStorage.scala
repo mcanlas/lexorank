@@ -8,8 +8,10 @@ import doobie._
 import doobie.implicits._
 
 /**
-  * @tparam K The type for primary keys in this storage
-  * @tparam R The type for ranking items relative to one another
+  * @tparam K
+  *   The type for primary keys in this storage
+  * @tparam R
+  *   The type for ranking items relative to one another
   */
 class SqlStorage[K: Get: Put, R: Get: Put] extends Storage[ConnectionIO, K, R] {
   private[this] val q =

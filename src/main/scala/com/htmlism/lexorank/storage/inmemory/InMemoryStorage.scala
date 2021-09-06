@@ -8,9 +8,12 @@ object InMemoryStorage {
   /**
     * Factory from nothing.
     *
-    * @tparam F An effect type
-    * @tparam K A key type
-    * @tparam R A rank type
+    * @tparam F
+    *   An effect type
+    * @tparam K
+    *   A key type
+    * @tparam R
+    *   A rank type
     */
   def empty[F[_]: Sync, K: KeyLike, R]: InMemoryStorage[F, K, R] =
     from(Map.empty)
@@ -18,11 +21,15 @@ object InMemoryStorage {
   /**
     * Factory method for seeding state
     *
-    * @param xs A map of ranks to anonymous payloads
+    * @param xs
+    *   A map of ranks to anonymous payloads
     *
-    * @tparam F An effect type
-    * @tparam K A key type
-    * @tparam R A rank type
+    * @tparam F
+    *   An effect type
+    * @tparam K
+    *   A key type
+    * @tparam R
+    *   A rank type
     */
   def from[F[_]: Sync, K: KeyLike, R](xs: Map[R, String]): InMemoryStorage[F, K, R] = {
     val store = new InMemoryStorage[F, K, R]
@@ -36,12 +43,17 @@ object InMemoryStorage {
 }
 
 /**
-  * @param xs A bi-directional map between PKs and ranks.
-  * @param K Evidence for key behaviors over `K`
+  * @param xs
+  *   A bi-directional map between PKs and ranks.
+  * @param K
+  *   Evidence for key behaviors over `K`
   *
-  * @tparam F An effect type
-  * @tparam K The type for primary keys in this storage. Usually `Int`
-  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
+  * @tparam F
+  *   An effect type
+  * @tparam K
+  *   The type for primary keys in this storage. Usually `Int`
+  * @tparam R
+  *   The type for ranking items relative to one another. Usually `Int` but could be something like `String`
   */
 class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends Storage[F, K, R] {
   private var pkSeed: K =

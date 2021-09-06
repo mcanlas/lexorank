@@ -9,23 +9,28 @@ package object lexorank {
     *   val x = ???: Value Or Error
     * }}}
     *
-    * @tparam A The payload type
-    * @tparam B The error type
+    * @tparam A
+    *   The payload type
+    * @tparam B
+    *   The error type
     */
   type Or[+A, +B] = Either[B, A]
 
   /**
-    * @group Imported types
+    * @group Imported
+    * types
     */
   type PosInt = PositiveInteger
 
   /**
-    * @group Imported types
+    * @group Imported
+    * types
     */
   val PosInt = PositiveInteger
 
   /**
-    * @group Imported types
+    * @group Imported
+    * types
     */
   type LexorankError = errors.LexorankError
 }

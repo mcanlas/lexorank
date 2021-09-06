@@ -13,14 +13,21 @@ import com.htmlism.lexorank.request._
   * records in it. The existing `changePosition` method assumes that there is something that exists prior that needs
   * changing. Admin users can seed the database with at least one row to facilitate this.
   *
-  * @param tx Like a Doobie transactor; a natural transformation from storage effect `G` to effect type `F`
-  * @param store Persistent storage for rows, keys, and ranks
-  * @param RG A strategy for generating values in `R`
+  * @param tx
+  *   Like a Doobie transactor; a natural transformation from storage effect `G` to effect type `F`
+  * @param store
+  *   Persistent storage for rows, keys, and ranks
+  * @param RG
+  *   A strategy for generating values in `R`
   *
-  * @tparam F The outer, transactional effect type (like `IO`) used after interpreting programs written in `G`
-  * @tparam G A composable effect type for storage
-  * @tparam K The type for primary keys in this storage. Usually `Int`
-  * @tparam R The type for ranking items relative to one another. Usually `Int` but could be something like `String`
+  * @tparam F
+  *   The outer, transactional effect type (like `IO`) used after interpreting programs written in `G`
+  * @tparam G
+  *   A composable effect type for storage
+  * @tparam K
+  *   The type for primary keys in this storage. Usually `Int`
+  * @tparam R
+  *   The type for ranking items relative to one another. Usually `Int` but could be something like `String`
   */
 class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R], RG: RankGenerator[R])(implicit
     R: Rankable[R]
@@ -107,8 +114,8 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     }
 
   /**
-    * Recursive runs of this function are referred to as "the cascade". In a worst case scenario, the rank you want
-    * may be occupied by another row already. Additionally, attempting to move this tenant away to another rank may
+    * Recursive runs of this function are referred to as "the cascade". In a worst case scenario, the rank you want may
+    * be occupied by another row already. Additionally, attempting to move this tenant away to another rank may
     * "collide" into yet another tenant and the process repeats itself.
     *
     * If you keep dynamically recomputing your collision strategy, it's possible that you will keep suggesting keys that
