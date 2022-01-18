@@ -2,8 +2,8 @@ lazy val doobieVersion = "0.8.0-RC1"
 
 scalafmtOnCompile := true
 
-scalaVersion := "2.13.7"
-crossScalaVersions := Seq("2.12.15", "2.13.7")
+scalaVersion := "2.13.8"
+crossScalaVersions := Seq("2.12.15", "2.13.8")
 
 console / initialCommands := "import com.htmlism.lexorank._"
 
