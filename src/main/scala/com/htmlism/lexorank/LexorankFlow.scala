@@ -62,7 +62,8 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
   // TODO it is possible to push the sorting into the storage contract
   def getRows(implicit ord: Ordering[R]): F[List[K]] =
     tx {
-      store.getSnapshot
+      store
+        .getSnapshot
         .map(_.toList.sortBy(_._2).map(_._1))
     }
 
