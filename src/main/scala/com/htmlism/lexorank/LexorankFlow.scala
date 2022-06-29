@@ -3,7 +3,7 @@ package com.htmlism.lexorank
 import scala.annotation.tailrec
 
 import cats._
-import cats.implicits._
+import cats.syntax.all._
 
 import com.htmlism.lexorank.ranking._
 import com.htmlism.lexorank.request._

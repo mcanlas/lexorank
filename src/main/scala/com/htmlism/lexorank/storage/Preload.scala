@@ -1,7 +1,7 @@
 package com.htmlism.lexorank.storage
 
 import cats.effect._
-import cats.implicits._
+import cats.syntax.all._
 import doobie._
 import doobie.implicits._
 import doobie.util.fragment.Fragment
