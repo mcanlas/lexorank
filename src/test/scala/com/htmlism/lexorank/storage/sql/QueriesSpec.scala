@@ -15,7 +15,7 @@ class QueriesSpec[K, R] extends AnyFreeSpec with IOChecker {
     new SqlQueries[PosInt, PosInt]
 
   private[this] val pk = PosInt(1)
-  private[this] val r = PosInt(1)
+  private[this] val r  = PosInt(1)
 
   "type safe queries in h2" - {
     "select one" in {

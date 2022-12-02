@@ -22,7 +22,7 @@ class LexorankSpec
   "insertion anywhere" should "always be successful given an int-sized store" in {
     forAll { store: InMemoryStorage[IO, PosInt, PosInt] =>
       val previousSize = store.size
-      val flow = new LexorankFlow(tx, store, rgPosInt)
+      val flow         = new LexorankFlow(tx, store, rgPosInt)
 
       flow
         .insertAt("", Anywhere)
@@ -36,7 +36,7 @@ class LexorankSpec
     val limit = 10
 
     val store = InMemoryStorage.empty[IO, PosInt, UpToTen]
-    val flow = new LexorankFlow(tx, store, UpToTen.AlwaysSayMin)
+    val flow  = new LexorankFlow(tx, store, UpToTen.AlwaysSayMin)
 
     for (n <- 1 to limit) {
       println(n.toString + ":")
@@ -68,7 +68,7 @@ class LexorankSpec
   "insertion anywhere" should "error given a crowded key space" ignore {
     forAll { store: InMemoryStorage[IO, PosInt, UpToTen] =>
       val previousSize = store.size
-      val flow = new LexorankFlow(tx, store, UpToTen.AlwaysSayMin)
+      val flow         = new LexorankFlow(tx, store, UpToTen.AlwaysSayMin)
 
       flow
         .insertAt("", Anywhere)
@@ -90,7 +90,7 @@ class LexorankSpec
       val io =
         for {
           xs1 <- flow.getRows
-          or <- flow.insertAt(s, req)
+          or  <- flow.insertAt(s, req)
           xs2 <- flow.getRows
         } yield {
           inside(or) { case Right((newPk, rec)) =>
@@ -131,7 +131,7 @@ class LexorankSpec
       val io =
         for {
           xs1 <- flow.getRows
-          or <- flow.changePosition(chReq)
+          or  <- flow.changePosition(chReq)
           xs2 <- flow.getRows
         } yield {
           inside(or) { case Right((echoPk, _)) =>

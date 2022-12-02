@@ -33,7 +33,7 @@ trait LexorankArbitraries {
     Arbitrary {
       val xy =
         for {
-          x <- arbitrary[A]
+          x   <- arbitrary[A]
           req <- arbitrary[PositionRequest[A]]
         } yield (x, req)
 
@@ -87,7 +87,7 @@ trait LexorankArbitraries {
 
   private[this] def genInsertBetween[F[_]: Sync, K: Eq: KeyLike, R: Arbitrary] =
     for {
-      s <- genStorageAtLeast[F, K, R](2)
+      s  <- genStorageAtLeast[F, K, R](2)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
     } yield InMemStoreAndInsertRequest(
@@ -107,7 +107,7 @@ trait LexorankArbitraries {
 
   private[this] def genChangeBefore[F[_]: Sync, K: Eq: KeyLike, R: Arbitrary] =
     for {
-      s <- genStorageAtLeast[F, K, R](2)
+      s  <- genStorageAtLeast[F, K, R](2)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
     } yield {
@@ -119,7 +119,7 @@ trait LexorankArbitraries {
 
   private[this] def genChangeAfter[F[_]: Sync, K: Eq: KeyLike, R: Arbitrary] =
     for {
-      s <- genStorageAtLeast[F, K, R](2)
+      s  <- genStorageAtLeast[F, K, R](2)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
     } yield {
@@ -131,7 +131,7 @@ trait LexorankArbitraries {
 
   private[this] def genChangeBetween[F[_]: Sync, K: Eq: KeyLike, R: Arbitrary] =
     for {
-      s <- genStorageAtLeast[F, K, R](3)
+      s  <- genStorageAtLeast[F, K, R](3)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       k3 <- Gen.oneOf((s.dump.keys.toSet - k1 - k2).toVector)
