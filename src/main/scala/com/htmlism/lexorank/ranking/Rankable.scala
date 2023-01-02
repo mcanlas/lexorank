@@ -42,7 +42,7 @@ trait Rankable[A] {
   * that the key space is very crowded and only supports safe inserts/changes in specific places. Redistributing keys
   * and/or using a larger key space can help alleviate this error.
   */
-object Rankable   {
+object Rankable {
   def apply[A: Rankable]: Rankable[A] =
     implicitly[Rankable[A]]
 
