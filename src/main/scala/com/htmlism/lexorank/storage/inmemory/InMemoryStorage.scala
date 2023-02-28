@@ -123,6 +123,7 @@ class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends St
   def size: Int =
     xs.size
 
+  // TODO reimplement toString as Show
   override def toString: String =
-    (pkSeed :: xs.map(_.toString).toList).mkString("\n")
+    (pkSeed.toString :: xs.map(_.toString).toList).mkString("\n")
 }
