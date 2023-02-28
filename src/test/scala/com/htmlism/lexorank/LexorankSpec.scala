@@ -1,7 +1,7 @@
 package com.htmlism.lexorank
 
 import cats.effect._
-import cats.syntax.all._
+import cats.implicits._
 import org.scalatest._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

@@ -3,7 +3,7 @@ package storage
 package sql
 
 import cats.effect._
-import cats.syntax.all._
+import cats.implicits._
 import doobie._
 import doobie.implicits._
 
