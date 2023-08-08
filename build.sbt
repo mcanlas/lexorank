@@ -10,7 +10,7 @@ libraryDependencies += "org.tpolecat" %% "doobie-h2"   % doobieVersion
 
 libraryDependencies += "org.scalatest"     %% "scalatest"        % "3.2.16"      % "test"
 libraryDependencies += "org.tpolecat"      %% "doobie-scalatest" % doobieVersion % "test"
-libraryDependencies += "org.scalacheck"    %% "scalacheck"       % "1.16.0"      % "test"
+libraryDependencies += "org.scalacheck"    %% "scalacheck"       % "1.17.0"      % "test"
 libraryDependencies += "org.scalatestplus" %% "scalacheck-1-14"  % "3.1.1.1"     % "test"
 
 // scaladoc enhancements
