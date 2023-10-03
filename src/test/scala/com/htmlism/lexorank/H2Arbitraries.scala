@@ -1,14 +1,14 @@
 package com.htmlism.lexorank
 
-import cats.effect._
-import doobie._
-import doobie.implicits._
+import cats.effect.*
+import doobie.*
+import doobie.implicits.*
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck._
+import org.scalacheck.*
 
-import com.htmlism.lexorank.request._
+import com.htmlism.lexorank.request.*
 import com.htmlism.lexorank.storage.Preload
-import com.htmlism.lexorank.storage.sql._
+import com.htmlism.lexorank.storage.sql.*
 
 trait H2Arbitraries {
   implicit val posInt: Arbitrary[PosInt] =

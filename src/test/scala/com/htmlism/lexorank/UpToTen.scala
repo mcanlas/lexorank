@@ -1,6 +1,6 @@
 package com.htmlism.lexorank
 
-import com.htmlism.lexorank.errors._
+import com.htmlism.lexorank.errors.*
 import com.htmlism.lexorank.ranking.CollisionStrategy
 import com.htmlism.lexorank.ranking.MoveDown
 import com.htmlism.lexorank.ranking.MoveUp

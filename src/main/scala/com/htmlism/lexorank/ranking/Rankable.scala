@@ -1,7 +1,7 @@
 package com.htmlism.lexorank
 package ranking
 
-import com.htmlism.lexorank.errors._
+import com.htmlism.lexorank.errors.*
 
 /**
   * Behavior for manipulating ranks.

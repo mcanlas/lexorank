@@ -1,8 +1,8 @@
 package com.htmlism.lexorank
 package storage.sql
 
-import doobie._
-import doobie.implicits._
+import doobie.*
+import doobie.implicits.*
 
 /**
   * A bundle of Doobie SQL queries. Static in principle, but constructed to centralize key and rank types with evidence.

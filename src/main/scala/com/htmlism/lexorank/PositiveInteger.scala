@@ -1,6 +1,6 @@
 package com.htmlism.lexorank
 
-import cats._
+import cats.*
 
 object PositiveInteger {
   implicit val posIntOrdering: Ordering[PosInt] =

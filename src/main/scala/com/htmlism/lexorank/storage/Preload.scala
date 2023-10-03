@@ -1,9 +1,9 @@
 package com.htmlism.lexorank.storage
 
-import cats.effect._
-import cats.implicits._
-import doobie._
-import doobie.implicits._
+import cats.effect.*
+import cats.implicits.*
+import doobie.*
+import doobie.implicits.*
 import doobie.util.fragment.Fragment
 
 object Preload {

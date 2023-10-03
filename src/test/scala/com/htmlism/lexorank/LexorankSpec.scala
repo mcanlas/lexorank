@@ -1,13 +1,13 @@
 package com.htmlism.lexorank
 
-import cats.effect._
-import cats.implicits._
-import org.scalatest._
+import cats.effect.*
+import cats.implicits.*
+import org.scalatest.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-import com.htmlism.lexorank.request._
+import com.htmlism.lexorank.request.*
 import com.htmlism.lexorank.storage.inmemory.InMemoryStorage
 
 class LexorankSpec

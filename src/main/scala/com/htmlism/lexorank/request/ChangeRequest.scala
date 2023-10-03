@@ -1,7 +1,7 @@
 package com.htmlism.lexorank
 package request
 
-import cats._
+import cats.*
 
 object ChangeRequest {
   def apply[A](id: A, req: PositionRequest[A])(implicit A: Eq[A]): ChangeRequest[A] Or LexorankError =

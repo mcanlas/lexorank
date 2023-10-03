@@ -1,13 +1,13 @@
 package com.htmlism.lexorank
 
-import cats._
-import cats.effect._
+import cats.*
+import cats.effect.*
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck._
+import org.scalacheck.*
 
 import com.htmlism.lexorank.ranking.Rankable
-import com.htmlism.lexorank.request._
-import com.htmlism.lexorank.storage.inmemory._
+import com.htmlism.lexorank.request.*
+import com.htmlism.lexorank.storage.inmemory.*
 
 trait LexorankArbitraries {
   implicit val upToTen: Arbitrary[UpToTen] =

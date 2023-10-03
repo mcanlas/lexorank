@@ -3,8 +3,8 @@ package storage
 package sql
 
 import cats.effect.IO
-import doobie._
-import doobie.scalatest._
+import doobie.*
+import doobie.scalatest.*
 import org.scalatest.freespec.AnyFreeSpec
 
 class QueriesSpec[K, R] extends AnyFreeSpec with IOChecker {

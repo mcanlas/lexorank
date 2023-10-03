@@ -1,8 +1,8 @@
 package com.htmlism.lexorank
 package request
 
-import cats.instances.int._
-import org.scalatest._
+import cats.instances.int.*
+import org.scalatest.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks

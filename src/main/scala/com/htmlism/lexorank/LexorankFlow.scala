@@ -2,11 +2,11 @@ package com.htmlism.lexorank
 
 import scala.annotation.tailrec
 
-import cats._
-import cats.implicits._
+import cats.*
+import cats.implicits.*
 
-import com.htmlism.lexorank.ranking._
-import com.htmlism.lexorank.request._
+import com.htmlism.lexorank.ranking.*
+import com.htmlism.lexorank.request.*
 
 /**
   * We can consciously choose not to support the use case of inserting new records in storage that currently has no

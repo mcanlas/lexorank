@@ -1,7 +1,7 @@
 package com.htmlism.lexorank
 package request
 
-import cats._
+import cats.*
 
 sealed trait PositionRequest[+A] {
   def keys: List[A]
