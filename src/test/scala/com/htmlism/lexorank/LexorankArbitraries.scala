@@ -58,10 +58,10 @@ trait LexorankArbitraries {
     }
 
   implicit def arbBefore[A: Arbitrary]: Arbitrary[Before[A]] =
-    Arbitrary { arbitrary[A].map(Before.apply) }
+    Arbitrary(arbitrary[A].map(Before.apply))
 
   implicit def arbAfter[A: Arbitrary]: Arbitrary[After[A]] =
-    Arbitrary { arbitrary[A].map(After.apply) }
+    Arbitrary(arbitrary[A].map(After.apply))
 
   implicit def arbStorage[K: Arbitrary: KeyLike, V: Arbitrary: Rankable]: Arbitrary[InMemoryStorage[IO, K, V]] =
     Arbitrary {
@@ -110,24 +110,20 @@ trait LexorankArbitraries {
       s  <- genStorageAtLeast[F, K, R](2)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
-    } yield {
-      InMemStoreAndChangeRequest(
-        s,
-        ChangeRequest(k1, Before(k2)).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
-      )
-    }
+    } yield InMemStoreAndChangeRequest(
+      s,
+      ChangeRequest(k1, Before(k2)).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+    )
 
   private[this] def genChangeAfter[F[_]: Sync, K: Eq: KeyLike, R: Arbitrary] =
     for {
       s  <- genStorageAtLeast[F, K, R](2)
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
-    } yield {
-      InMemStoreAndChangeRequest(
-        s,
-        ChangeRequest(k1, After(k2)).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
-      )
-    }
+    } yield InMemStoreAndChangeRequest(
+      s,
+      ChangeRequest(k1, After(k2)).getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+    )
 
   private[this] def genChangeBetween[F[_]: Sync, K: Eq: KeyLike, R: Arbitrary] =
     for {
@@ -135,13 +131,11 @@ trait LexorankArbitraries {
       k1 <- Gen.oneOf(s.dump.keys.toVector)
       k2 <- Gen.oneOf((s.dump.keys.toSet - k1).toVector)
       k3 <- Gen.oneOf((s.dump.keys.toSet - k1 - k2).toVector)
-    } yield {
-      InMemStoreAndChangeRequest(
-        s,
-        ChangeRequest(k1, Between(k2, k3).getOrElse(throw new UnsupportedOperationException("expeced valid Between")))
-          .getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
-      )
-    }
+    } yield InMemStoreAndChangeRequest(
+      s,
+      ChangeRequest(k1, Between(k2, k3).getOrElse(throw new UnsupportedOperationException("expeced valid Between")))
+        .getOrElse(throw new UnsupportedOperationException("expeced valid Between"))
+    )
 
   private[this] def genStorageAtLeast[F[_]: Sync, K: KeyLike, R: Arbitrary](n: Int) =
     Gen
