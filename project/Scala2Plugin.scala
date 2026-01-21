@@ -12,7 +12,7 @@ object Scala2Plugin extends AutoPlugin {
   override def trigger: PluginTrigger = AllRequirements
 
   override val buildSettings: Seq[Setting[?]] = Seq(
-    scalaVersion := "2.13.16"
+    scalaVersion := "2.13.18"
   )
 
   // putting into project settings helps with late binding for properly detecting scala3 cross build?
