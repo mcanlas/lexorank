@@ -24,9 +24,9 @@ import com.htmlism.lexorank.errors.*
 trait Rankable[A] {
   protected def max: A
 
-  def increment(a: A): A Or MaxOverflow
+  def increment(a: A): Either[MaxOverflow, A]
 
-  def decrement(a: A): A Or MinUnderflow
+  def decrement(a: A): Either[MinUnderflow, A]
 
   /**
     * Used to determine if increment or decrement is used to resolve collisions.
@@ -51,7 +51,7 @@ object Rankable {
       protected def max: PosInt =
         PosInt(Int.MaxValue)
 
-      def increment(a: PosInt): PosInt Or MaxOverflow = {
+      def increment(a: PosInt): Either[MaxOverflow, PosInt] = {
         val inc = a.n + 1
 
         if (inc < a.n)
@@ -60,7 +60,7 @@ object Rankable {
           Right(PosInt(inc))
       }
 
-      def decrement(a: PosInt): PosInt Or MinUnderflow = {
+      def decrement(a: PosInt): Either[MinUnderflow, PosInt] = {
         val dec = a.n - 1
 
         if (dec > a.n)

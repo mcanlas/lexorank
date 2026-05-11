@@ -23,7 +23,7 @@ object UpToTen {
       protected def max: UpToTen =
         UpToTen(10)
 
-      def increment(a: UpToTen): UpToTen Or MaxOverflow = {
+      def increment(a: UpToTen): Either[MaxOverflow, UpToTen] = {
         val inc = a.n + 1
 
         if (inc > 10)
@@ -32,7 +32,7 @@ object UpToTen {
           Right(UpToTen(inc))
       }
 
-      def decrement(a: UpToTen): UpToTen Or MinUnderflow = {
+      def decrement(a: UpToTen): Either[MinUnderflow, UpToTen] = {
         val dec = a.n - 1
 
         if (dec < 0)

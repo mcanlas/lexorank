@@ -23,7 +23,7 @@ case class After[A](k: A) extends PositionRequest[A] {
 }
 
 object Between {
-  def apply[A: Eq](a: A, b: A): Between[A] Or LexorankError =
+  def apply[A: Eq](a: A, b: A): Either[LexorankError, Between[A]] =
     Either.cond(Eq[A].neqv(a, b), new Between[A](a, b), errors.DuplicateBetweenKeys)
 
   def unapply[A](x: Between[A]): Option[(A, A)] =

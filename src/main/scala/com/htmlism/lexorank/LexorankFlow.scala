@@ -54,7 +54,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
   /**
     * Partially unified alias for IntelliJ's benefit.
     */
-  type OrLexorankError[A] = A Or LexorankError
+  type EitherLexorankError[A] = Either[LexorankError, A]
 
   /**
     * Scala `ListSet` is buggy in 2.11 so don't bother.
@@ -70,13 +70,13 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
   /**
     * A public method for attempting to insert an anonymous payload at some position.
     */
-  def insertAt(payload: String, req: PositionRequest[K]): F[Row Or LexorankError] =
+  def insertAt(payload: String, req: PositionRequest[K]): F[Either[LexorankError, Row]] =
     tx {
       store.lockSnapshot >>= attemptWriteWorkflow(req, store.insertNewRecord(payload, _))
     }
 
   // TODO is there a pathological case here where you might request a change that is already true?
-  def changePosition(chReq: ChangeRequest[K]): F[Row Or LexorankError] =
+  def changePosition(chReq: ChangeRequest[K]): F[Either[LexorankError, Row]] =
     tx {
       store.lockSnapshot >>= attemptWriteWorkflow(chReq.req, store.changeRankTo(chReq.id, _))
     }
@@ -86,7 +86,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
       .traverse((attemptWritesToStorage(consumeRank) _).tupled)
 
   // partially applied either bifunctor for error-free flatmap in intellij
-  private[this] def areRequestKeysValid(req: PositionRequest[K], ctx: Snapshot): OrLexorankError[Snapshot] =
+  private[this] def areRequestKeysValid(req: PositionRequest[K], ctx: Snapshot): EitherLexorankError[Snapshot] =
     Either.cond(req.keys.forall(ctx.contains), ctx, errors.KeyNotInContext)
 
   private[this] def attemptWritesToStorage(consumeRank: R => G[Row])(xs: List[Update], newRank: R) =
@@ -128,7 +128,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
       updates: List[Update],
       rank: R,
       previousStrategy: Option[CollisionStrategy]
-  ): List[Update] Or errors.OverflowError =
+  ): Either[errors.OverflowError, List[Update]] =
     rankCollidesAt(rank)(ctx) match {
       case Some(k) =>
         val strat =
