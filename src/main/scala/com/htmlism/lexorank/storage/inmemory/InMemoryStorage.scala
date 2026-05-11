@@ -2,6 +2,8 @@ package com.htmlism.lexorank
 package storage.inmemory
 
 import cats.effect.*
+import java.util.concurrent.atomic.AtomicReference
+import scala.annotation.tailrec
 
 object InMemoryStorage {
 
@@ -56,20 +58,19 @@ object InMemoryStorage {
   *   The type for ranking items relative to one another. Usually `Int` but could be something like `String`
   */
 class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends Storage[F, K, R] {
-  private var pkSeed: K =
-    K.first
+  private case class State(nextPk: K, rows: Map[K, Record[R]])
 
-  private[this] val xs =
-    collection.mutable.Map.empty[K, Record[R]]
+  private[this] val state =
+    new AtomicReference(State(K.first, Map.empty[K, Record[R]]))
 
   def getSnapshot: F[Snapshot] =
     F.delay {
-      xs.map(r => r._1 -> r._2.rank).toMap
+      snapshotOf(state.get)
     }
 
   def lockSnapshot: F[Snapshot] =
     F.delay {
-      xs.map(r => r._1 -> r._2.rank).toMap
+      snapshotOf(state.get)
     }
 
   def insertNewRecord(payload: String, rank: R): F[Row] =
@@ -79,51 +80,82 @@ class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends St
 
   def changeRankTo(id: K, rank: R): F[Row] =
     F.delay {
-      val withNewRank = xs(id).copy(rank = rank)
+      updateState { s =>
+        val withNewRank =
+          s.rows(id).copy(rank = rank)
 
-      xs(id) = withNewRank
-      assertUniqueRanks()
+        val next =
+          s.copy(rows = s.rows.updated(id, withNewRank))
 
-      id -> withNewRank
+        assertUniqueRanks(next)
+
+        next -> (id -> withNewRank)
+      }
     }
 
   def applyUpdateInCascade(up: Update): F[Unit] =
     F.delay {
-      xs(up.pk) = Record("", up.to)
-      assertUniqueRanks()
+      updateState[Unit] { s =>
+        val next =
+          s.copy(rows = s.rows.updated(up.pk, Record("", up.to)))
+
+        assertUniqueRanks(next)
+
+        next -> ()
+      }
     }
 
-  private[this] def assertUniqueRanks(): Unit =
-    assert(xs.values.map(_.rank).toSet.size == xs.size, "ranks are unique")
+  private[this] def snapshotOf(s: State): Snapshot =
+    s.rows.view.mapValues(_.rank).toMap
+
+  private[this] def assertUniqueRanks(s: State): Unit =
+    assert(s.rows.values.map(_.rank).toSet.size == s.rows.size, "ranks are unique")
+
+  @tailrec
+  private[this] def updateState[A](f: State => (State, A)): A = {
+    val current =
+      state.get
+
+    val (next, out) =
+      f(current)
+
+    if (state.compareAndSet(current, next)) out
+    else updateState(f)
+  }
 
   /**
     * Not a part of the public API. For testing only.
     */
   def addRecord(payload: String, rank: R): Row = {
-    val rec = Record(payload, rank)
+    updateState { s =>
+      val rec =
+        Record(payload, rank)
 
-    val pk = pkSeed
-    pkSeed = K.increment(pkSeed)
+      val pk =
+        s.nextPk
 
-    xs += (pk -> rec)
-    assertUniqueRanks()
+      val next =
+        State(K.increment(pk), s.rows.updated(pk, rec))
 
-    (pk, rec)
+      assertUniqueRanks(next)
+
+      next -> (pk -> rec)
+    }
   }
 
   /**
     * Not a part of the public API. For testing only.
     */
   def dump: Map[K, Record[R]] =
-    xs.toMap
+    state.get.rows
 
   /**
     * Not a part of the public API. For testing only.
     */
   def size: Int =
-    xs.size
+    state.get.rows.size
 
   // TODO reimplement toString as Show
   override def toString: String =
-    (pkSeed.toString :: xs.map(_.toString).toList).mkString("\n")
+    (state.get.nextPk.toString :: state.get.rows.map(_.toString).toList).mkString("\n")
 }
