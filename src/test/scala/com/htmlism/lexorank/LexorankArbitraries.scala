@@ -5,7 +5,6 @@ import cats.effect.*
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.*
 
-import com.htmlism.lexorank.ranking.Rankable
 import com.htmlism.lexorank.request.*
 import com.htmlism.lexorank.storage.inmemory.*
 
@@ -63,7 +62,7 @@ trait LexorankArbitraries {
   implicit def arbAfter[A: Arbitrary]: Arbitrary[After[A]] =
     Arbitrary(arbitrary[A].map(After.apply))
 
-  implicit def arbStorage[K: Arbitrary: KeyLike, V: Arbitrary: Rankable]: Arbitrary[InMemoryStorage[IO, K, V]] =
+  implicit def arbStorage[K: KeyLike, V: Arbitrary]: Arbitrary[InMemoryStorage[IO, K, V]] =
     Arbitrary {
       genNonEmptyStorage[IO, K, V]
     }
