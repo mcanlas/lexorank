@@ -64,7 +64,7 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
     tx {
       store
         .getSnapshot
-        .map(_.toList.sortBy(_._2).map(_._1))
+        .map(_.toList.sortBy(_._2)(ord).map(_._1))
     }
 
   /**
