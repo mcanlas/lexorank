@@ -22,3 +22,12 @@
   - [ ] Verify that a valid change request moves the item before the requested key for `Before(k)`
   - [ ] Verify that a valid change request moves the item after the requested key for `After(k)`
   - [ ] Verify that a valid change request moves the item between the two requested keys for `Between(x, y)`
+- [ ] Test SQL-backed ranking flow behavior
+  - [ ] Verify that a valid insert request preserves the relative order of existing items and places the new item before the requested key for `Before(k)`
+  - [ ] Verify that a valid insert request preserves the relative order of existing items and places the new item after the requested key for `After(k)`
+  - [ ] Verify that a valid insert request preserves the relative order of existing items and places the new item between the two requested keys for `Between(x, y)`
+  - [ ] Verify that a valid insert request preserves the inserted payload on the resulting record
+  - [ ] Verify that a valid change request preserves store size, keeps the same primary key on the updated record, and preserves the relative order of all other items
+  - [ ] Verify that a valid change request moves the item before the requested key for `Before(k)`
+  - [ ] Verify that a valid change request moves the item after the requested key for `After(k)`
+  - [ ] Verify that a valid change request moves the item between the two requested keys for `Between(x, y)`
