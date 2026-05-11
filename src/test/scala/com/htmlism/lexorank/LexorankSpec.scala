@@ -20,7 +20,7 @@ class LexorankSpec
   private[this] val tx = cats.arrow.FunctionK.id[IO]
 
   "insertion anywhere" should "always be successful given an int-sized store" in {
-    forAll { store: InMemoryStorage[IO, PosInt, PosInt] =>
+    forAll { (store: InMemoryStorage[IO, PosInt, PosInt]) =>
       val previousSize = store.size
       val flow         = new LexorankFlow(tx, store, rgPosInt)
 
@@ -66,7 +66,7 @@ class LexorankSpec
     * smarter strategy would be able to take advantage of the empty keys that the midpoint strategy is leaving behind.
     */
   "insertion anywhere" should "error given a crowded key space" ignore {
-    forAll { store: InMemoryStorage[IO, PosInt, UpToTen] =>
+    forAll { (store: InMemoryStorage[IO, PosInt, UpToTen]) =>
       val previousSize = store.size
       val flow         = new LexorankFlow(tx, store, UpToTen.AlwaysSayMin)
 
@@ -121,7 +121,7 @@ class LexorankSpec
   }
 
   "a valid Change request" should "maintain size; reflect requested order; retain old order" in {
-    forAll { duo: InMemStoreAndChangeRequest[IO, PosInt, PosInt] =>
+    forAll { (duo: InMemStoreAndChangeRequest[IO, PosInt, PosInt]) =>
       val InMemStoreAndChangeRequest(store, chReq) = duo
 
       val flow = new LexorankFlow(tx, store, rgPosInt)

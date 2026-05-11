@@ -56,7 +56,7 @@ class LexorankH2Spec
   }
 
   "a valid Change request" should "maintain size; reflect requested order; retain old order" in {
-    forAll { trio: H2StoreAndChangeRequest[PosInt, PosInt] =>
+    forAll { (trio: H2StoreAndChangeRequest[PosInt, PosInt]) =>
       val H2StoreAndChangeRequest(tx, store, chReq) = trio
 
       val flow = new LexorankFlow(tx, store, rgPosInt)

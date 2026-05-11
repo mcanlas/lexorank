@@ -27,7 +27,7 @@ class ChangeRequestSpec
   }
 
   "invalid pairs" should "fail properly" in {
-    forAll { req: PositionRequest[Int] =>
+    forAll { (req: PositionRequest[Int]) =>
       ChangeRequest(req.keys.head, req).left.value shouldBe errors.DuplicateChangeKeys
     }
   }

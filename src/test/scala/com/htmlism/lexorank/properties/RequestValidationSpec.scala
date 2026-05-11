@@ -23,7 +23,7 @@ class RequestValidationSpec
     new LexorankFlow(tx, new InMemoryStorage[IO, PosInt, PosInt], rgPosInt)
 
   "invalid insert before requests" should "return a key error" in {
-    forAll { req: Before[PosInt] =>
+    forAll { (req: Before[PosInt]) =>
       val io =
         emptyFlow
           .insertAt("", req)
@@ -38,7 +38,7 @@ class RequestValidationSpec
   }
 
   "invalid insert after requests" should "return a key error" in {
-    forAll { req: After[PosInt] =>
+    forAll { (req: After[PosInt]) =>
       val io =
         emptyFlow
           .insertAt("", req)

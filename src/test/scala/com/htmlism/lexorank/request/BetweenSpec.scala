@@ -26,7 +26,7 @@ class BetweenSpec
   }
 
   "invalid pairs" should "fail properly" in {
-    forAll { x: Int =>
+    forAll { (x: Int) =>
       Between(x, x).left.value shouldBe errors.DuplicateBetweenKeys
     }
   }
