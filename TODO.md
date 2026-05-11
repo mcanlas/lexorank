@@ -68,3 +68,14 @@
   - [ ] Verify that generated change bundles always reference existing store keys and enough distinct neighboring keys to satisfy the requested movement shape
   - [ ] Verify that generated stores for `Between` insert cases have at least two entries
   - [ ] Verify that generated stores for `Between` change cases have at least three entries
+- [ ] Test SQL-backed arbitrary generation assumptions
+  - [ ] Verify that generated positive integers stay strictly above zero
+  - [ ] Verify that generated SQL-backed stores are seeded from non-empty preload data
+  - [ ] Verify that generated `Before` and `After` SQL insert bundles always reference keys that already exist in the generated SQL store
+  - [ ] Verify that generated `Between` SQL insert bundles always reference two distinct keys that already exist in the generated SQL store
+  - [ ] Verify that generated SQL change bundles always reference existing store keys and enough distinct neighboring keys to satisfy the requested movement shape
+  - [ ] Verify that generated SQL stores for `Before` and `After` insert cases have at least one entry
+  - [ ] Verify that generated SQL stores for `Between` insert cases have at least two entries
+  - [ ] Verify that generated SQL stores for `Before` and `After` change cases have at least two entries
+  - [ ] Verify that generated SQL stores for `Between` change cases have at least three entries
+  - [ ] Verify that generated SQL-backed bundles preserve a usable transactor and SQL storage instance alongside the generated request
