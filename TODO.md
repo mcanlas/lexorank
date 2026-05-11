@@ -57,3 +57,14 @@
 - [ ] Test SQL request bundle shapes
   - [ ] Verify that an SQL insert request bundle preserves the transactor, the SQL storage instance, and the associated position request
   - [ ] Verify that an SQL change request bundle preserves the transactor, the SQL storage instance, and the associated change request
+- [ ] Test in-memory arbitrary generation assumptions
+  - [ ] Verify that generated `UpToTen` values stay within the intended bounded integer range
+  - [ ] Verify that generated positive integers stay strictly above zero
+  - [ ] Verify that generated `Between` requests always use two distinct keys
+  - [ ] Verify that generated `ChangeRequest` values always use an id that is not already one of the position request keys
+  - [ ] Verify that generated in-memory stores are non-empty
+  - [ ] Verify that generated `Before` and `After` insert bundles always reference keys that already exist in the generated store
+  - [ ] Verify that generated `Between` insert bundles always reference two distinct keys that already exist in the generated store
+  - [ ] Verify that generated change bundles always reference existing store keys and enough distinct neighboring keys to satisfy the requested movement shape
+  - [ ] Verify that generated stores for `Between` insert cases have at least two entries
+  - [ ] Verify that generated stores for `Between` change cases have at least three entries
