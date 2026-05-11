@@ -47,3 +47,7 @@
   - [ ] Verify that `eq` compares `UpToTen` values by their wrapped integer
   - [ ] Verify that `collisionStrategy` chooses `MoveUp` below the midpoint and `MoveDown` at or above the midpoint
   - [ ] Verify that the `AlwaysSayMin` rank generator always returns the minimum `UpToTen` value from `between`
+- [ ] Test deterministic `PosInt` rank generation
+  - [ ] Verify that `between(x, y)` returns one greater than the smaller wrapped integer
+  - [ ] Verify that the deterministic `PosInt` generator uses `PosInt(1)` as its minimum bound
+  - [ ] Verify that the deterministic `PosInt` generator uses `PosInt(Int.MaxValue)` as its maximum bound
