@@ -38,3 +38,12 @@
   - [ ] Verify that `insert` remains a valid typed query against the preloaded SQL schema
   - [ ] Verify that `updateRankAfterCascade` remains a valid typed query against the preloaded SQL schema
   - [ ] Verify that `updateRankInsideCascade` remains a valid typed query against the preloaded SQL schema
+- [ ] Test `UpToTen`
+  - [ ] Verify that the ordering for `UpToTen` sorts values by their wrapped integer
+  - [ ] Verify that incrementing an `UpToTen` value below 10 succeeds and returns the next integer value
+  - [ ] Verify that incrementing `UpToTen(10)` fails with `MaxOverflow`
+  - [ ] Verify that decrementing an `UpToTen` value above 0 succeeds and returns the previous integer value
+  - [ ] Verify that decrementing `UpToTen(0)` fails with `MinUnderflow`
+  - [ ] Verify that `eq` compares `UpToTen` values by their wrapped integer
+  - [ ] Verify that `collisionStrategy` chooses `MoveUp` below the midpoint and `MoveDown` at or above the midpoint
+  - [ ] Verify that the `AlwaysSayMin` rank generator always returns the minimum `UpToTen` value from `between`
