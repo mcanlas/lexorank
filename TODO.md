@@ -11,3 +11,14 @@
 - [ ] Test invalid insert request validation
   - [ ] Verify that inserting with `Before(k)` against an empty context fails with `KeyNotInContext`
   - [ ] Verify that inserting with `After(k)` against an empty context fails with `KeyNotInContext`
+- [ ] Test core in-memory ranking flow behavior
+  - [ ] Verify that inserting at `Anywhere` succeeds for a non-empty integer-backed in-memory store and increases the store size by one
+  - [ ] Verify that repeated inserts at `Anywhere` with the small `UpToTen` key space and the always-min rank generator fill ranks in sorted order from 1 upward until the limit is reached
+  - [ ] Verify that a valid insert request preserves the relative order of existing items and places the new item before the requested key for `Before(k)`
+  - [ ] Verify that a valid insert request preserves the relative order of existing items and places the new item after the requested key for `After(k)`
+  - [ ] Verify that a valid insert request preserves the relative order of existing items and places the new item between the two requested keys for `Between(x, y)`
+  - [ ] Verify that a valid insert request preserves the inserted payload on the resulting record
+  - [ ] Verify that a valid change request preserves store size, keeps the same primary key on the updated record, and preserves the relative order of all other items
+  - [ ] Verify that a valid change request moves the item before the requested key for `Before(k)`
+  - [ ] Verify that a valid change request moves the item after the requested key for `After(k)`
+  - [ ] Verify that a valid change request moves the item between the two requested keys for `Between(x, y)`
