@@ -8,3 +8,6 @@
   - [ ] Verify that constructing `ChangeRequest(id, req)` succeeds when `id` is not one of the request keys
   - [ ] Verify that a successful `ChangeRequest(id, req)` preserves both the original id and the original position request
   - [ ] Verify that constructing `ChangeRequest(id, req)` fails with `DuplicateChangeKeys` when `id` is already one of the request keys
+- [ ] Test invalid insert request validation
+  - [ ] Verify that inserting with `Before(k)` against an empty context fails with `KeyNotInContext`
+  - [ ] Verify that inserting with `After(k)` against an empty context fails with `KeyNotInContext`
