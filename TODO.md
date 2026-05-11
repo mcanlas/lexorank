@@ -31,3 +31,10 @@
   - [ ] Verify that a valid change request moves the item before the requested key for `Before(k)`
   - [ ] Verify that a valid change request moves the item after the requested key for `After(k)`
   - [ ] Verify that a valid change request moves the item between the two requested keys for `Between(x, y)`
+- [ ] Test SQL query definitions
+  - [ ] Verify that `selectOne` remains a valid typed query against the preloaded SQL schema
+  - [ ] Verify that `selectAllRows` remains a valid typed query against the preloaded SQL schema
+  - [ ] Verify that `selectAllRowsForUpdate` remains a valid typed query against the preloaded SQL schema
+  - [ ] Verify that `insert` remains a valid typed query against the preloaded SQL schema
+  - [ ] Verify that `updateRankAfterCascade` remains a valid typed query against the preloaded SQL schema
+  - [ ] Verify that `updateRankInsideCascade` remains a valid typed query against the preloaded SQL schema
