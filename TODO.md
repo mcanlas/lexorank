@@ -54,3 +54,6 @@
 - [ ] Test in-memory request bundle shapes
   - [ ] Verify that an in-memory insert request bundle preserves both the in-memory store and the associated position request
   - [ ] Verify that an in-memory change request bundle preserves both the in-memory store and the associated change request
+- [ ] Test SQL request bundle shapes
+  - [ ] Verify that an SQL insert request bundle preserves the transactor, the SQL storage instance, and the associated position request
+  - [ ] Verify that an SQL change request bundle preserves the transactor, the SQL storage instance, and the associated change request
