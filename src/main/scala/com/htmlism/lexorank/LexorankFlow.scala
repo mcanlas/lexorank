@@ -168,8 +168,8 @@ class LexorankFlow[F[_], G[_]: Monad, K, R](tx: G ~> F, store: Storage[G, K, R],
       case After(x) =>
         RG.after(ctx(x))
 
-      case Between(x, y) =>
-        RG.between(ctx(x), ctx(y))
+      case b: Between[K] =>
+        RG.between(ctx(b.a), ctx(b.b))
 
       case Anywhere =>
         RG.anywhere

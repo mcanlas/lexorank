@@ -37,13 +37,13 @@ class LexorankH2Spec
             case After(k) =>
               assert(xs2.indexOf(newPk) > xs2.indexOf(k), s"new pk $newPk comes after requested pk $k")
 
-            case Between(x, y) =>
-              val xFirst = xs2.indexOf(newPk) > xs2.indexOf(x) && xs2.indexOf(newPk) < xs2
-                .indexOf(y)
-              val yFirst = xs2.indexOf(newPk) > xs2.indexOf(y) && xs2.indexOf(newPk) < xs2
-                .indexOf(x)
+            case b: Between[PosInt] =>
+              val xFirst = xs2.indexOf(newPk) > xs2.indexOf(b.a) && xs2.indexOf(newPk) < xs2
+                .indexOf(b.b)
+              val yFirst = xs2.indexOf(newPk) > xs2.indexOf(b.b) && xs2.indexOf(newPk) < xs2
+                .indexOf(b.a)
 
-              assert(xFirst || yFirst, s"new pk $newPk is somewhere between $x and $y, unordered")
+              assert(xFirst || yFirst, s"new pk $newPk is somewhere between ${b.a} and ${b.b}, unordered")
 
             case Anywhere =>
           }
@@ -78,13 +78,13 @@ class LexorankH2Spec
             case After(k) =>
               assert(xs2.indexOf(echoPk) > xs2.indexOf(k), s"pk $echoPk comes after requested pk $k")
 
-            case Between(x, y) =>
-              val xFirst = xs2.indexOf(echoPk) > xs2.indexOf(x) && xs2.indexOf(echoPk) < xs2
-                .indexOf(y)
-              val yFirst = xs2.indexOf(echoPk) > xs2.indexOf(y) && xs2.indexOf(echoPk) < xs2
-                .indexOf(x)
+            case b: Between[PosInt] =>
+              val xFirst = xs2.indexOf(echoPk) > xs2.indexOf(b.a) && xs2.indexOf(echoPk) < xs2
+                .indexOf(b.b)
+              val yFirst = xs2.indexOf(echoPk) > xs2.indexOf(b.b) && xs2.indexOf(echoPk) < xs2
+                .indexOf(b.a)
 
-              assert(xFirst || yFirst, s"pk $echoPk is somewhere between $x and $y, unordered")
+              assert(xFirst || yFirst, s"pk $echoPk is somewhere between ${b.a} and ${b.b}, unordered")
 
             case Anywhere =>
           }
