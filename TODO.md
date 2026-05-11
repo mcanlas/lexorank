@@ -51,3 +51,6 @@
   - [ ] Verify that `between(x, y)` returns one greater than the smaller wrapped integer
   - [ ] Verify that the deterministic `PosInt` generator uses `PosInt(1)` as its minimum bound
   - [ ] Verify that the deterministic `PosInt` generator uses `PosInt(Int.MaxValue)` as its maximum bound
+- [ ] Test in-memory request bundle shapes
+  - [ ] Verify that an in-memory insert request bundle preserves both the in-memory store and the associated position request
+  - [ ] Verify that an in-memory change request bundle preserves both the in-memory store and the associated change request
