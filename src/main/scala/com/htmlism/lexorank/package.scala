@@ -1,6 +1,7 @@
 package com.htmlism
 
 package object lexorank {
+
   /**
     * @group Imported
     * types

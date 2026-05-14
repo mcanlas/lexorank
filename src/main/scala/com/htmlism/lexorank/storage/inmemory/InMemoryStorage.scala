@@ -126,7 +126,7 @@ class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends St
   /**
     * Not a part of the public API. For testing only.
     */
-  def addRecord(payload: String, rank: R): Row = {
+  def addRecord(payload: String, rank: R): Row =
     updateState { s =>
       val rec =
         Record(payload, rank)
@@ -141,7 +141,6 @@ class InMemoryStorage[F[_], K, R](implicit F: Sync[F], K: KeyLike[K]) extends St
 
       next -> (pk -> rec)
     }
-  }
 
   /**
     * Not a part of the public API. For testing only.
