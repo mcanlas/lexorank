@@ -1,9 +1,11 @@
 package com.htmlism.lexorank
 package storage.inmemory
 
-import cats.effect.*
 import java.util.concurrent.atomic.AtomicReference
+
 import scala.annotation.tailrec
+
+import cats.effect.*
 
 object InMemoryStorage {
 
